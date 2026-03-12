@@ -1,0 +1,303 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    /* Gradasi Coklat Hangat */
+    background: linear-gradient(180deg, #F5EBE0 0%, #D5BDAF 100%);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.container {
+    width: 100%;
+    max-width: 450px; /* Ukuran maksimal HP */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    position: relative;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.menu-icon {
+    position: absolute;
+    left: 20px;
+    top: 25px;
+    cursor: pointer;
+}
+
+.menu-icon span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: #4E342E; /* Coklat Tua */
+    margin-bottom: 5px;
+}
+
+.ig-tag {
+    font-size: 0.8rem;
+    color: #8D6E63; /* Coklat Medium */
+}
+
+.home-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.hero-image img {
+    width: 75px;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(78, 52, 46, 0.2);
+    transform: rotate(-5deg); /* Efek miring estetik */
+    margin-bottom: 30px;
+    border: 2pxsolid white; /* Frame foto putih */
+}
+
+.hero-text h1 {
+    font-size: 3rem;
+    font-weight: 300;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+    color: #3E2723;
+}
+
+.hero-text p {
+    font-size: 0.9rem;
+    color: #5D4037;
+    max-width: 250px;
+    margin-bottom: 40px;
+    line-height: 1.4;
+}
+
+.btn-start {
+    /* Gradasi Coklat Kayu */
+    background: linear-gradient(90deg, #6D4C41, #8D6E63);
+    color: white;
+    border: none;
+    padding: 15px 60px;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(109, 76, 65, 0.4);
+    transition: transform 0.2s;
+}
+
+.btn-start:active {
+    transform: scale(0.95);
+}
+
+.camera-icon {
+    font-size: 1.1rem;
+    margin-left: 10px;
+}
+
+.promo-banner {
+    position: absolute;
+    bottom: 20px;
+    width: calc(100% - 40px);
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    text-align: center;
+    font-size: 0.8rem;
+    color: #4E342E;
+}
+
+/* Header Layout */
+.layout-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 10px 0;
+}
+
+.btn-back {
+    position: absolute;
+    left: 0;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #4E342E;
+}
+
+/* Title Section */
+.title-section {
+    text-align: center;
+    margin: 20px 0 40px 0;
+}
+
+.title-section h2 {
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin-bottom: 5px;
+    color: #3E2723;
+}
+
+.title-section p {
+    font-size: 0.85rem;
+    color: #8D6E63;
+    font-style: italic;
+}
+
+/* Layout Grid */
+.layout-grid {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding: 10px;
+}
+
+.layout-card {
+    background: white;
+    width: 160px;
+    padding: 15px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.layout-card:hover {
+    transform: translateY(-5px);
+    border: 2px solid #8D6E63; /* Border saat hover coklat */
+}
+
+.badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #E6BE8A; /* Warna Gold/Tan lembut */
+    color: #4E342E;
+    font-size: 0.6rem;
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Mockup Frame */
+.layout-preview {
+    background: #F5EBE0;
+    height: 180px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.frame-mockup {
+    background: white;
+    width: 60px;
+    height: 150px;
+    border: 1px solid #D5BDAF;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    gap: 5px;
+}
+
+.frame-mockup span {
+    background: #EDF2F4;
+    flex: 1;
+    border-radius: 2px;
+}
+
+.layout-card h3 {
+    font-size: 0.9rem;
+    text-transform: capitalize;
+    margin-bottom: 5px;
+    color: #3E2723;
+}
+
+.layout-card p {
+    font-size: 0.7rem;
+    color: #8D6E63;
+    line-height: 1.2;
+}
+
+.dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 30px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: #D5BDAF;
+    border-radius: 50%;
+}
+
+.dot.active {
+    background: #6D4C41; /* Dot aktif coklat tua */
+}
+
+/* Container untuk menampung panah dan grid */
+.slider-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+    gap: 10px;
+}
+
+/* Style umum tombol panah */
+.nav-arrow {
+    background: white;
+    border: 1px solid #D5BDAF;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    color: #6D4C41;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.nav-arrow:active {
+    transform: scale(0.9);
+    background-color: #F5EBE0;
+}
+
+/* Khusus tampilan Mobile agar panah tidak terlalu memakan tempat */
+@media (max-width: 400px) {
+    .nav-arrow {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+}
+
+

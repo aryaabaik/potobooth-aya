@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIMELESS — ARCHIVING SESSION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
+
+    <style>
+        /* --- CHRONOS THEME BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --paper: #e8e6e1; 
+            --ink: #111;
+            --accent: #555;
+        }
+
+        body { 
+            background: var(--paper); 
+            color: var(--ink); 
+            font-family: 'Space Mono', monospace; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- VINTAGE GRAIN OVERLAY --- */
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.3; pointer-events: none; z-index: 1000;
+        }
+
+        /* --- HEADER & COUNTER --- */
+        .top-info {
+            width: 100%;
+            border-bottom: 2px solid var(--ink);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+
+        .pose-counter { 
+            font-family: 'Archivo Black', sans-serif;
+            background: var(--ink); 
+            color: var(--paper); 
+            padding: 5px 20px; 
+            transform: skewX(-10deg);
+        }
+
+        /* --- CAM BOX: CHROME STYLE --- */
+        .cam-box { 
+            width: 100%; 
+            max-width: 500px; 
+            aspect-ratio: 4/3; 
+            background: #000; 
+            position: relative; 
+            overflow: hidden; 
+            border: 2px solid var(--ink); 
+            box-shadow: 15px 15px 0px rgba(0,0,0,0.05);
+        }
+
+        #videoFeed, #resultCanvas { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+
+        #videoFeed { transform: scaleX(-1); filter: sepia(0.2); }
+        #resultCanvas { display: none; background: white; border: 1px solid var(--ink); }
+
+        #countdown { 
+            position: absolute; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 150px; 
+            color: var(--paper); 
+            z-index: 5; 
+            -webkit-text-stroke: 3px var(--ink);
+            display: none; 
+        }
+
+        #flash { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: white; display: none; z-index: 10; 
+        }
+
+        .live-tag {
+            position: absolute; top: 15px; left: 15px;
+            background: #ff0000; color: white;
+            padding: 4px 10px; font-size: 10px; font-weight: bold;
+            z-index: 20; display: none; animation: blink 0.8s infinite;
+        }
+
+        /* --- INVENTORY: ARCHIVE LIST --- */
+        .inventory-section {
+            width: 100%; max-width: 500px; margin-top: 30px;
+            border-top: 2px solid var(--ink); padding-top: 20px;
+        }
+
+        .inv-title {
+            font-family: 'Archivo Black'; font-size: 12px;
+            margin-bottom: 15px; text-align: center; text-transform: uppercase;
+        }
+
+        .inventory-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+        }
+
+        .inv-item {
+            aspect-ratio: 1/1; background: #fff;
+            border: 1px solid var(--ink); position: relative; overflow: hidden;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.05);
+        }
+
+        .inv-item img { width: 100%; height: 100%; object-fit: cover; filter: sepia(0.3); }
+
+        .retake-btn {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: var(--ink); color: #fff; border: none;
+            font-family: 'Space Mono'; font-size: 8px; padding: 5px 0;
+            cursor: pointer; opacity: 0.8;
+        }
+
+        /* --- FILTERS: MINIMALIST --- */
+        .filter-container { 
+            width: 100%; max-width: 500px; margin-top: 20px;
+        }
+
+        .filter-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
+
+        .filter-item { cursor: pointer; text-align: center; min-width: 70px; }
+
+        .filter-dot { 
+            width: 50px; height: 50px; border: 1px solid var(--ink); 
+            margin: 0 auto 5px; transition: 0.3s; 
+        }
+
+        .filter-item span { font-size: 9px; font-weight: bold; text-transform: uppercase; }
+
+        .active .filter-dot { 
+            transform: scale(1.1); border-width: 3px; 
+            box-shadow: 4px 4px 0px var(--ink);
+        }
+
+        /* --- CONTROLS: BRUTALISM --- */
+        .controls { 
+            margin-top: 30px; display: flex; flex-direction: column; 
+            gap: 15px; width: 100%; max-width: 350px; 
+        }
+
+        button { 
+            padding: 18px; font-family: 'Archivo Black', sans-serif; 
+            font-size: 1rem; cursor: pointer; text-transform: uppercase; 
+            transition: 0.2s; border: 2px solid var(--ink);
+        }
+
+        .btn-capture { background: var(--ink); color: var(--paper); }
+        .btn-capture:hover { background: var(--accent); }
+
+        .btn-process { background: #fff; color: var(--ink); box-shadow: 8px 8px 0px var(--ink); display: none; }
+        
+        .btn-download { 
+            background: var(--ink); color: var(--paper); font-size: 0.8rem; margin-bottom: 8px; 
+            clip-path: polygon(5% 0, 100% 0, 95% 100%, 0% 100%);
+        }
+
+        .btn-back {
+            padding: 5px 12px !important; /* Timpa padding button general */
+            font-size: 10px !important;
+            background: transparent;
+            color: var(--ink);
+            border: 1px solid var(--ink);
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+.btn-back:hover {
+    background: var(--ink);
+    color: var(--paper);
+    box-shadow: 4px 4px 0px var(--accent);
+}
+
+        #loading { 
+            display: none; font-family: 'Archivo Black'; margin: 20px; 
+            color: var(--ink); text-align: center; animation: blink 0.5s infinite alternate;
+        }
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            /* Garis-garis horizontal hitam transparan */
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px; /* Jarak antar garis */
+            z-index: 999;
+            pointer-events: none;
+        }
+       /* Animasi Super Glitch */
+@keyframes super-glitch {
+  0% { transform: translate(0); clip-path: inset(45% 0 50% 0); filter: hue-rotate(90deg) contrast(2); }
+  20% { transform: translate(-10px, 5px); clip-path: inset(10% 0 80% 0); filter: hue-rotate(180deg); }
+  40% { transform: translate(10px, -5px); clip-path: inset(60% 0 10% 0); filter: invert(1); }
+  60% { transform: translate(-15px, 0); clip-path: inset(30% 0 30% 0); filter: saturate(5); }
+  80% { transform: translate(15px, 5px); clip-path: inset(15% 0 55% 0); }
+  100% { transform: translate(0); clip-path: inset(0); }
+}
+
+.glitch-active {
+  position: relative;
+  animation: super-glitch 0.1s steps(1) infinite; /* Speed ditingkatkan biar kenceng */
+  outline: 5px solid red; /* Tambah border merah pas glitch biar makin kelihatan */
+}
+
+/* Biar video/canvas-nya juga ikutan geser */
+.glitch-active video, .glitch-active canvas {
+  transform: scale(1.2); /* Zoom dikit pas glitch biar dramatis */
+}
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+
+    <div class="top-info">
+        <div style="display: flex; align-items: center; gap: 15px;">
+        <button onclick="window.location.href='index.html'" class="btn-back">
+            ← RETAKE_LAYOUT
+        </button>
+        <div>SYS_SESSION // GEN_01</div>
+    </div>
+    <div class="pose-counter" id="poseDisplay">0/0</div>
+    </div>
+
+    <div class="cam-box" id="camBox">
+        <div id="flash"></div>
+        <div id="countdown">3</div>
+        <div class="live-tag" id="liveTag">● RECORDING</div>
+        <div id="filterOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2; display:none; mix-blend-mode: multiply; opacity: 0.4; background: linear-gradient(45deg, #ffcc33, #ff6600);"></div>
+        
+        <video id="videoFeed" autoplay playsinline></video>
+        <canvas id="resultCanvas"></canvas>
+    </div>
+
+    <div class="inventory-section" id="invSection">
+        <div class="inv-title">Archive Inventory</div>
+        <div class="inventory-grid" id="invGrid"></div>
+    </div>
+
+    <div id="loading">EXECUTING_ARCHIVE...</div>
+
+    <div class="filter-container" id="filterContainer">
+        <div class="filter-bar">
+            <div class="filter-item active" onclick="setFilter('none', this)">
+                <div class="filter-dot" style="background:#fff"></div>
+                <span>Neutral</span>
+            </div>
+            <div class="filter-item" onclick="setFilter('grayscale(100%) contrast(1.2)', this)">
+                <div class="filter-dot" style="background:#333"></div>
+                <span>B&W</span>
+            </div>
+            <div class="filter-item" onclick="setFilter('sepia(0.6) contrast(1.1)', this)">
+                <div class="filter-dot" style="background:#d2b48c"></div>
+                <span>Archive</span>
+            </div>
+            <div class="filter-item" onclick="setFilter('sunset', this)">
+                <div class="filter-dot" style="background: linear-gradient(45deg, #ffcc33, #ff6600);"></div>
+                <span>Chrome</span>
+            </div>
+            <div class="filter-item" onclick="setFilter('dither', this)">
+                <div class="filter-dot" style="background: repeating-conic-gradient(#000 0% 25%, #fff 0% 50%) 50% / 2px 2px;"></div>
+                <span>Dither</span>
+        </div>
+            <div class="filter-item" onclick="setFilter('halftone', this)">
+                <div class="filter-dot" style="background: radial-gradient(#000 20%, transparent 25%) 0 0 / 6px 6px, #fff;"></div>
+                <span>Halftone</span>
+        </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-capture" id="startBtn" onclick="startSequence()">Capture Moment</button>
+        <button class="btn-process" id="processBtn" onclick="renderFinalFrame()">Assemble Archive</button>
+        
+        <div id="downloadOptions" style="display:none; flex-direction:column;">
+            <button class="btn-download" onclick="downloadImage()">Download JPG</button>
+            <button class="btn-download" style="background:#555" onclick="downloadGifWithFrame()">Download Animated GIF</button>
+            <button onclick="location.reload()" style="background:transparent; border:1px solid #999; font-size:10px; margin-top:10px;">New Session</button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoFeed');
+        const canvas = document.getElementById('resultCanvas');
+        const ctx = canvas.getContext('2d');
+        const countdownEl = document.getElementById('countdown');
+        const startBtn = document.getElementById('startBtn');
+        const loading = document.getElementById('loading');
+        const liveTag = document.getElementById('liveTag');
+        const invGrid = document.getElementById('invGrid');
+        
+        let photos = []; 
+        let rawFrames = []; 
+        let currentFilter = 'none';
+        
+        const selectedLayout = localStorage.getItem('selectedLayout') || 'layoutA';
+        const camBox = document.getElementById('camBox');
+
+        // AUDIO SYSTEM
+        const sfx = {
+            beep: new Audio('sounds/beep.mp3'),
+            shutter: new Audio('sounds/shutter.mp3'),
+            printer: new Audio('sounds/print.mp3')
+        };
+        
+        sfx.beep.volume = 0.3;    // Suara beep pelan aja biar gak kaget (30%)
+        sfx.shutter.volume = 1.0;  // Shutter kenceng biar mantap (100%)
+        sfx.printer.volume = 0.6;
+        
+        function playSound(name, duration) {
+            sfx[name].currentTime = 0;
+            sfx[name].play();
+            if (duration) {
+                setTimeout(() => {
+                    sfx[name].pause();
+                    sfx[name].currentTime = 0;
+                }, duration);
+            }
+        }
+
+        let maxPoses = 3; 
+        const frameImg = new Image();
+
+        if (selectedLayout === 'layoutB') { maxPoses = 4; frameImg.src = 'frames/2.png'; } 
+        else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/3.png'; } 
+        else if (selectedLayout === 'layoutD') { maxPoses = 3; frameImg.src = 'frames/4.png'; } 
+        else if (selectedLayout === 'layoutE') { maxPoses = 3; frameImg.src = 'frames/5.png'; } 
+        else if (selectedLayout === 'layoutF') { maxPoses = 2; frameImg.src = 'frames/6.png'; camBox.style.aspectRatio = "640/788"; } 
+        else if (selectedLayout === 'layoutG') { maxPoses = 1; frameImg.src = 'frames/7.png'; camBox.style.aspectRatio = "640/788"; } 
+        else if (selectedLayout === 'layoutH') { maxPoses = 3; frameImg.src = 'frames/8.png'; } 
+        else if (selectedLayout === 'layoutI') { maxPoses = 4; frameImg.src = 'frames/9.png'; camBox.style.aspectRatio = "640/788"; } 
+        else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/10.png'; }
+        else { maxPoses = 3; frameImg.src = 'frames/1(2).png'; }
+
+        function updatePoseDisplay() {
+            document.getElementById('poseDisplay').innerText = `${photos.length}/${maxPoses}`;
+        }
+        updatePoseDisplay();
+        
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 1280, height: 960 }, audio: false 
+                });
+                video.srcObject = stream;
+            } catch (err) { alert("Access Denied: Camera not found."); }
+        }
+
+        function setFilter(filter, el) {
+            const overlay = document.getElementById('filterOverlay');
+            video.style.filter = 'none';
+            overlay.style.display = 'none';
+            if (filter === 'sunset') {
+                video.style.filter = 'contrast(1.2) sepia(0.2)';
+                overlay.style.display = 'block';
+                currentFilter = 'sunset'; 
+            } else {
+                currentFilter = filter;
+                video.style.filter = filter;
+            }
+            document.querySelectorAll('.filter-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function updateInventory() {
+            invGrid.innerHTML = '';
+            photos.forEach((src, idx) => {
+                const div = document.createElement('div');
+                div.className = 'inv-item';
+                div.innerHTML = `<img src="${src}"><button class="retake-btn" onclick="retake(${idx})">DEL</button>`;
+                invGrid.appendChild(div);
+            });
+            updatePoseDisplay();
+            if (photos.length === maxPoses) {
+                startBtn.style.display = 'none';
+                document.getElementById('processBtn').style.display = 'block';
+            } else {
+                startBtn.style.display = 'block';
+                startBtn.innerText = photos.length > 0 ? "Next Pose" : "Capture Moment";
+                document.getElementById('processBtn').style.display = 'none';
+            }
+        }
+
+        function retake(idx) {
+            photos.splice(idx, 1);
+            rawFrames.splice(idx, 1);
+            updateInventory();
+            document.getElementById('filterContainer').style.display = 'block';
+        }
+
+   async function startSequence() {
+    startBtn.disabled = true;
+    document.getElementById('filterContainer').style.display = 'none';
+    const camBox = document.getElementById('camBox'); // Ambil element camBox
+
+    if(photos.length < maxPoses) {
+        // COUNTDOWN WITH BEEP (1s)
+        countdownEl.style.display = 'block';
+        for (let i = 3; i > 1; i--) {
+            countdownEl.innerText = i;
+            playSound('beep', 1000); 
+            await new Promise(r => setTimeout(r, 1000));
+        }
+        
+        countdownEl.innerText = "1";
+        playSound('beep', 1000);
+        await new Promise(r => setTimeout(r, 1000));
+
+        liveTag.style.display = 'block';
+        const currentPoseFrames = [];
+        for(let i=0; i<6; i++) {
+            currentPoseFrames.push(captureFrameManual());
+            await new Promise(r => setTimeout(r, 150));
+        }
+
+        // --- FLASH + SHUTTER + GLITCH ---
+        const flash = document.getElementById('flash');
+        
+        // Aktifkan Efek
+        flash.style.display = 'block';
+        camBox.classList.add('glitch-active'); // MULAI GLITCH
+        playSound('shutter', 2000); 
+        
+        // Matikan Flash & Glitch setelah durasi singkat
+        setTimeout(() => {
+            flash.style.display = 'none';
+            camBox.classList.remove('glitch-active'); // STOP GLITCH
+        }, 400); // Glitch cuma 0.4 detik biar dramatis
+
+        countdownEl.style.display = 'none';
+        liveTag.style.display = 'none';
+        
+        loading.style.display = 'block';
+        const gifData = await makeGif(currentPoseFrames); 
+        rawFrames.push(currentPoseFrames);
+        photos.push(gifData);
+        loading.style.display = 'none';
+        updateInventory();
+    }
+    startBtn.disabled = false;
+}
+
+        function applyDithering(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            for (let y = 0; y < imageData.height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = (y * width + x) * 4;
+                    const oldR = data[idx];
+                    const newR = oldR < 128 ? 0 : 255;
+                    data[idx] = data[idx + 1] = data[idx + 2] = newR;
+                    const err = (oldR - newR) >> 3;
+                    const neighbors = [[1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]];
+                    neighbors.forEach(([nx, ny]) => {
+                        const targetIdx = ((y + ny) * width + (x + nx)) * 4;
+                        if (targetIdx >= 0 && targetIdx < data.length) {
+                            data[targetIdx] += err;
+                            data[targetIdx + 1] += err;
+                            data[targetIdx + 2] += err;
+                        }
+                    });
+                }
+            }
+            return imageData;
+        }
+
+        function applyHalftone(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            const gridSize = 7;
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = "#000";
+            for (let y = 0; y < height; y += gridSize) {
+                for (let x = 0; x < width; x += gridSize) {
+                    const idx = (y * width + x) * 4;
+                    const r = data[idx];
+                    const g = data[idx + 1];
+                    const b = data[idx + 2];
+                    const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+                    const radius = (gridSize / 2) * (1 - brightness / 255);
+                    if (radius > 0.5) {
+                        ctx.beginPath();
+                        ctx.arc(x + gridSize/2, y + gridSize/2, radius * 1.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function goBack() {
+            if (photos.length > 0) {
+                if (confirm("ARCHIVE DATA WILL BE LOST. PROCEED?")) {
+                    window.location.href = 'layout.html';
+                }
+            } else {
+                window.location.href = 'layout.html';
+            }
+        }
+    
+        function captureFrameManual() {
+    const tempCanvas = document.createElement('canvas');
+    const cfg = getLayoutConfig();
+    
+    // Set ukuran canvas sesuai kotak di frame
+    tempCanvas.width = cfg.photoW;
+    tempCanvas.height = cfg.photoH;
+    
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // --- LOGIKA ANTI GEPENG (CENTER CROP) ---
+    const videoW = video.videoWidth;
+    const videoH = video.videoHeight;
+    const targetRatio = cfg.photoW / cfg.photoH;
+    const videoRatio = videoW / videoH;
+
+    let sX, sY, sW, sH;
+
+    if (videoRatio > targetRatio) {
+        sW = videoH * targetRatio;
+        sH = videoH;
+        sX = (videoW - sW) / 2;
+        sY = 0;
+    } else {
+        sW = videoW;
+        sH = videoW / targetRatio;
+        sX = 0;
+        sY = (videoH - sH) / 2;
+    }
+
+    tempCtx.save();
+    
+    // Efek Filter
+    tempCtx.filter = (currentFilter === 'sunset') ? 'contrast(1.2) sepia(0.2)' : currentFilter;
+    
+    // Mirroring (Balik foto agar tidak terbalik seperti cermin)
+    tempCtx.translate(cfg.photoW, 0);
+    tempCtx.scale(-1, 1);
+
+    // DRAW DENGAN 9 PARAMETER UNTUK CROP
+    tempCtx.drawImage(video, sX, sY, sW, sH, 0, 0, cfg.photoW, cfg.photoH);
+    
+    tempCtx.restore();
+
+    // Logika tambahan untuk filter khusus (sunset, dither, dll) tetap sama
+    if (currentFilter === 'sunset') {
+        tempCtx.globalAlpha = 0.3;
+        tempCtx.globalCompositeOperation = 'multiply';
+        const grad = tempCtx.createLinearGradient(0,0,0,cfg.photoH);
+        grad.addColorStop(0, '#ffcc33'); grad.addColorStop(1, '#ff6600');
+        tempCtx.fillStyle = grad;
+        tempCtx.fillRect(0,0,cfg.photoW, cfg.photoH);
+    }
+    
+    if (currentFilter === 'dither') {
+        let imgData = tempCtx.getImageData(0, 0, cfg.photoW, cfg.photoH);
+        imgData = applyDithering(imgData);
+        tempCtx.putImageData(imgData, 0, 0);
+    }
+    
+    if (currentFilter === 'halftone') {
+        applyHalftone(tempCtx, cfg.photoW, cfg.photoH);
+    }
+
+    return tempCanvas.toDataURL('image/jpeg', 0.9); // Kualitas ditingkatkan ke 0.9
+}
+
+        function makeGif(frames) {
+            return new Promise(resolve => {
+                gifshot.createGIF({ images: frames, gifWidth: 400, gifHeight: 300, interval: 0.1 }, 
+                function(obj) { if(!obj.error) resolve(obj.image); });
+            });
+        }
+
+        async function renderFinalFrame() {
+    loading.style.display = 'block';
+    loading.innerText = "GENERATING_ARCHIVE...";
+    
+    playSound('printer', 3000);
+
+    document.getElementById('invSection').style.display = 'none';
+    document.getElementById('processBtn').style.display = 'none';
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+
+    await frameImg.decode();
+
+    await new Promise(resolve => {
+        setTimeout(async () => {
+            const isLargeLayout = (selectedLayout === 'layoutG' || selectedLayout === 'layoutI');
+            
+            canvas.width = isLargeLayout ? 1080 : 800;
+            canvas.height = isLargeLayout ? 1920 : 2400;
+
+            let cfg = getLayoutConfig();
+            
+            for (let i = 0; i < photos.length; i++) {
+                const img = new Image();
+                img.src = photos[i]; 
+                await new Promise(r => {
+                    img.onload = () => {
+    let xPos, yPos;
+    if (cfg.positions) {
+        xPos = cfg.positions[i].x;
+        yPos = cfg.positions[i].y;
+    } else {
+        xPos = cfg.startX;
+        yPos = cfg.startY + (i * (cfg.photoH + cfg.gap));
+    }
+
+    // Karena foto sudah di-crop di captureFrameManual, tinggal tempel:
+    ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
+    r();
+}
+                });
+            }
+            ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+            resolve();
+        }, 3000); 
+    });
+            loading.style.display = 'none';
+            document.getElementById('downloadOptions').style.display = 'flex';
+        }
+
+        function getLayoutConfig() {
+            if (selectedLayout === 'layoutB') return { photoW: 710, photoH: 447, startX: 45, startY: 54, gap: 90 };
+            if (['layoutC', 'layoutD', 'layoutE',].includes(selectedLayout)) return { photoW: 710, photoH: 549, startX: 50, startY: 133, gap: 190 };
+            if (selectedLayout === 'layoutF') return { photoW: 640, photoH: 788, startX: 80, startY: 290, gap: 193 };
+            if (selectedLayout === 'layoutG') return { photoW: 586, photoH: 798, startX: 343, startY: 372, gap: 0};
+            if (selectedLayout === 'layoutI') {
+            return {
+                photoW: 485,  // Berdasarkan screenshot lo
+                photoH: 597,  // Berdasarkan screenshot lo
+                // Karena posisinya custom (tidak cuma vertikal), kita buat array koordinat
+                positions: [
+                    { x: 34,  y: 186 }, // Foto 1 (Kiri Atas)
+                    { x: 564, y: 186 }, // Foto 2 (Kanan Atas)
+                    { x: 29,  y: 905 }, // Foto 3 (Kiri Bawah - Estimasi gap 122)
+                    { x: 564, y: 905 }  // Foto 4 (Kanan Bawah - Estimasi gap 122)
+                    ]
+                };
+            }
+            if (selectedLayout === 'layoutJ') {
+            return {
+                photoW: 700,  // Lebar berdasarkan screenshot Canva kamu
+                photoH: 525,  // Tinggi berdasarkan screenshot Canva kamu
+                // Kita tentukan koordinat X dan Y untuk masing-masing dari 3 foto
+                positions: [
+                    { x: 50,  y: 133 },  // Foto 1 (Kiri Atas)
+                    { x: 50, y: 833 },  // Foto 2 (Kanan Atas)
+                    { x: 50,  y: 1533.5 }   // Foto 3 (Kiri Bawah) -> Angka 905 ini estimasi, silakan cek Y di Canva untuk kotak bawah
+                    ]
+                };
+            }
+            return { photoW: 710, photoH: 549, startX: 43, startY: 50, gap: 190 };
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = `archive_${Date.now()}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }
+
+       async function downloadGifWithFrame() {
+    loading.style.display = 'block';
+    loading.innerText = "GENERATING_ANIMATED_GIF..."; // Tambahin info biar user tahu lagi proses
+    
+    const cfg = getLayoutConfig();
+    const finalGifFrames = [];
+    
+    // Looping 6 frame untuk animasi
+    for (let f = 0; f < 6; f++) {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width; 
+        tempCanvas.height = canvas.height;
+        const tCtx = tempCanvas.getContext('2d');
+        
+        // Background putih biar gak transparan aneh
+        tCtx.fillStyle = "white";
+        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Looping untuk tiap pose (p)
+        for (let p = 0; p < rawFrames.length; p++) {
+            const img = new Image();
+            img.src = rawFrames[p][f]; // Ambil frame animasi ke-f dari pose ke-p
+            
+            await new Promise(r => {
+                img.onload = () => {
+                    let xPos, yPos;
+                    
+                    // --- PERBAIKAN DI SINI ---
+                    if (cfg.positions) {
+                        // Kalau layout custom (seperti Layout I), pakai koordinat dari array positions
+                        xPos = cfg.positions[p].x;
+                        yPos = cfg.positions[p].y;
+                    } else {
+                        // Kalau layout strip biasa, pakai rumus vertikal
+                        xPos = cfg.startX;
+                        yPos = cfg.startY + (p * (cfg.photoH + cfg.gap));
+                    }
+                    
+                    tCtx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
+                    r();
+                };
+            });
+        }
+        
+        // Tempel frame PNG di atas foto
+        tCtx.drawImage(frameImg, 0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Push ke array frames dengan kualitas 0.7 biar gak berat
+        finalGifFrames.push(tempCanvas.toDataURL('image/jpeg', 0.7));
+    }
+    
+    // Proses bikin GIF pakai gifshot
+    gifshot.createGIF({ 
+        images: finalGifFrames, 
+        gifWidth: canvas.width / 2, // Diperkecil biar sizenya ramah memori
+        gifHeight: canvas.height / 2, 
+        interval: 0.15 
+    }, function(obj) {
+        if (!obj.error) {
+            const link = document.createElement('a');
+            link.download = `animated_archive_${Date.now()}.gif`;
+            link.href = obj.image; 
+            link.click();
+        } else {
+            console.error("GIF Error:", obj.error);
+        }
+        loading.style.display = 'none';
+    });
+}
+
+        window.onload = initCamera;
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

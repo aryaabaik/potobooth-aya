@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result - Photobooth</title>
+    <style>
+        /* Tema Coklat Estetik */
+        body { 
+            background: #F5EBE0; 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+            color: #4E342E; 
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        h2 { margin: 20px 0; font-weight: 600; }
+
+        .result-container { 
+            background: white; 
+            padding: 10px; 
+            box-shadow: 0 10px 30px rgba(78, 52, 46, 0.15); 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+        }
+
+        #finalCanvas { 
+            max-width: 100%; 
+            height: auto; 
+            display: block; 
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .btn-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            width: 100%; 
+            max-width: 320px; 
+            padding-bottom: 40px;
+        }
+
+        button { 
+            padding: 16px; 
+            border-radius: 50px; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+        }
+
+        .btn-download { background: #6D4C41; color: white; box-shadow: 0 4px 10px rgba(109, 76, 65, 0.3); }
+        .btn-download:hover { background: #5D4037; transform: translateY(-2px); }
+
+        .btn-gif { background: #D5BDAF; color: #4E342E; }
+        .btn-gif:hover { background: #C3A99B; }
+
+        .btn-retake { 
+            background: transparent; 
+            border: 2px solid #6D4C41; 
+            color: #6D4C41; 
+        }
+        .btn-retake:hover { background: #6D4C41; color: white; }
+
+        /* Full Screen Loading */
+        #loading { 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            background: white; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            z-index: 100; 
+        }
+        
+        .spinner {
+            width: 45px;
+            height: 45px;
+            border: 5px solid #F5EBE0;
+            border-top: 5px solid #6D4C41;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #statusText { font-weight: bold; color: #6D4C41; }
+    </style>
+</head>
+<body>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p id="statusText">Menyusun fotomu...</p>
+    </div>
+
+    <h2>Stunning! ✨</h2>
+    
+    <div class="result-container">
+        <canvas id="finalCanvas"></canvas>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-download" onclick="downloadImage()">Download Photo</button>
+        <button class="btn-gif" id="gifBtn" onclick="downloadGIF()">Download GIF</button>
+        <button class="btn-retake" onclick="window.location.href='index.html'">Take Another One</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.4.5/gifshot.min.js"></script>
+
+    <script>
+        const canvas = document.getElementById('finalCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        const capturedPhotos = JSON.parse(localStorage.getItem('capturedPhotos') || '[]');
+        const selectedLayout = localStorage.getItem('selectedLayout') || 'layoutA';
+
+        const frameImg = new Image();
+        frameImg.src = selectedLayout === 'layoutA' ? 'frames/framea.png' : 'frames/frameb.png';
+
+        async function initResult() {
+            if (capturedPhotos.length === 0) {
+                alert("Foto tidak ditemukan!");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            frameImg.onload = async () => {
+                // Pastikan ukuran canvas sesuai frame
+                canvas.width = frameImg.width;
+                canvas.height = frameImg.height;
+
+                let config;
+                if (selectedLayout === 'layoutA') {
+                    // Konfigurasi 3 Foto (Contoh: Frame 800x2400)
+                    config = {
+                        count: 3,
+                        photoW: 700,
+                        photoH: 525,
+                        startX: 50,
+                        startY: 79.8,
+                        gap: 219
+                    };
+                } else {
+                    // Konfigurasi 4 Foto
+                    config = {
+                        count: 4,
+                        photoW: 700,
+                        photoH: 420,
+                        startX: 50,
+                        startY: 60,
+                        gap: 89
+                    };
+                }
+
+                // Jalankan proses gambar
+                await drawStrip(config);
+            };
+        }
+
+        async function drawStrip(cfg) {
+            const statusText = document.getElementById('statusText');
+            
+            // Tunggu frame siap di-decode
+            try { await frameImg.decode(); } catch (e) {}
+
+            // Gambar Background Putih (Dasar)
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Gambar foto satu per satu
+            for (let i = 0; i < Math.min(capturedPhotos.length, cfg.count); i++) {
+                statusText.innerText = `Memproses foto ${i + 1}...`;
+                
+                await new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = capturedPhotos[i];
+                    img.onload = () => {
+                        const xPos = cfg.startX;
+                        const yPos = cfg.startY + (i * (cfg.photoH + cfg.gap));
+                        
+                        // Center Crop Logic
+                        const imgRatio = img.width / img.height;
+                        const targetRatio = cfg.photoW / cfg.photoH;
+                        let sw, sh, sx, sy;
+
+                        if (imgRatio > targetRatio) {
+                            sh = img.height; sw = img.height * targetRatio;
+                            sx = (img.width - sw) / 2; sy = 0;
+                        } else {
+                            sw = img.width; sh = img.width / targetRatio;
+                            sx = 0; sy = (img.height - sh) / 2;
+                        }
+
+                        ctx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
+                        resolve();
+                    };
+                });
+            }
+
+            // Tempel Frame PNG di atas foto
+            ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+            
+            // Hilangkan Loading
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = `photobooth_${Date.now()}.jpg`;
+            // Menggunakan JPEG agar size file lebih bersahabat
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+
+        function downloadGIF() {
+            const btn = document.getElementById('gifBtn');
+            const originalText = btn.innerText;
+            btn.innerText = "⚡ PROCESSING...";
+            btn.disabled = true;
+
+            gifshot.createGIF({
+                images: capturedPhotos,
+                gifWidth: 400, 
+                gifHeight: 300,
+                interval: 0.4,
+                numFrames: capturedPhotos.length,
+                sampleInterval: 20, // Percepat proses encoding
+                numWorkers: 4
+            }, function (obj) {
+                if (!obj.error) {
+                    const link = document.createElement('a');
+                    link.download = 'moment.gif';
+                    link.href = obj.image;
+                    link.click();
+                } else {
+                    alert("Gagal membuat GIF");
+                }
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        window.onload = initResult;
+    </script>
+</body>
+</html>
