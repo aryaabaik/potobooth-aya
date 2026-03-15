@@ -456,7 +456,8 @@
         liveTag.style.display = 'none';
         
         loading.style.display = 'block';
-        const gifData = await makeGif(currentPoseFrames); 
+        const cfg = getLayoutConfig();
+        const gifData = await makeGif(currentPoseFrames, cfg.photoW, cfg.photoH); 
         rawFrames.push(currentPoseFrames);
         photos.push(gifData);
         loading.style.display = 'none';
@@ -590,10 +591,10 @@
     return tempCanvas.toDataURL('image/jpeg', 0.9); // Kualitas ditingkatkan ke 0.9
 }
 
-        function makeGif(frames) {
+        function makeGif(frames, w, h) {
             return new Promise(resolve => {
-                gifshot.createGIF({ images: frames, gifWidth: 400, gifHeight: 300, interval: 0.1 }, 
-                function(obj) { if(!obj.error) resolve(obj.image); });
+                gifshot.createGIF({ images: frames, gifWidth: w || 400, gifHeight: h || 300, interval: 0.1 }, 
+                function(obj) { if(!obj.error) resolve(obj.image); resolve(frames[0]); });
             });
         }
 
@@ -616,6 +617,10 @@
             
             canvas.width = isLargeLayout ? 1080 : 800;
             canvas.height = isLargeLayout ? 1920 : 2400;
+
+            // Fill white background dulu biar tidak ada black bar
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             let cfg = getLayoutConfig();
             
