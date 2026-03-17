@@ -347,17 +347,16 @@
         const frameImg = new Image();
 
         // MAPPING: Ensure frame images match what's in layout.html
-        if (selectedLayout === 'layoutA') { maxPoses = 3; frameImg.src = 'frames/1.png'; }
-        else if (selectedLayout === 'layoutB') { maxPoses = 3; frameImg.src = 'frames/2.png'; } 
-        else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/3.png'; } 
-        else if (selectedLayout === 'layoutD') { maxPoses = 3; frameImg.src = 'frames/4.png'; } 
-        else if (selectedLayout === 'layoutE') { maxPoses = 3; frameImg.src = 'frames/8.png'; } 
-        else if (selectedLayout === 'layoutF') { maxPoses = 3; frameImg.src = 'frames/9.png'; } 
-        else if (selectedLayout === 'layoutG') { maxPoses = 1; frameImg.src = 'frames/6.png'; camBox.style.aspectRatio = "640/788"; } 
-        else if (selectedLayout === 'layoutH') { maxPoses = 3; frameImg.src = 'frames/framea1.png'; } 
-        else if (selectedLayout === 'layoutI') { maxPoses = 3; frameImg.src = 'frames/9.png'; } 
-        else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/framea.png'; }
-        else { maxPoses = 3; frameImg.src = 'frames/1.png'; }
+       if (selectedLayout === 'layoutA') { maxPoses = 4; frameImg.src = 'frames/1.png'; }
+else if (selectedLayout === 'layoutB') { maxPoses = 3; frameImg.src = 'frames/2.png'; }
+else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/3.png'; }
+else if (selectedLayout === 'layoutD') { maxPoses = 3; frameImg.src = 'frames/4.png'; }
+else if (selectedLayout === 'layoutE') { maxPoses = 3; frameImg.src = 'frames/8.png'; }
+else if (selectedLayout === 'layoutF') { maxPoses = 3; frameImg.src = 'frames/9.png'; }
+else if (selectedLayout === 'layoutG') { maxPoses = 1; frameImg.src = 'frames/6.png'; }
+else if (selectedLayout === 'layoutH') { maxPoses = 3; frameImg.src = 'frames/framea1.png'; }
+else if (selectedLayout === 'layoutI') { maxPoses = 3; frameImg.src = 'frames/9.png'; }
+else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/framea.png'; }
 
         // Set Aspect Ratio for CamBox (Normal View)
         camBox.style.aspectRatio = "4/3";
@@ -700,7 +699,8 @@
             for (let i = 0; i < photos.length; i++) {
                 if (!photos[i]) continue;
                 const img = new Image();
-                img.src = photos[i]; 
+                img.src = photos[i];
+                img.crossOrigin = "anonymous"; 
                 await new Promise(r => {
                     img.onload = () => {
                         const xPos = cfg.positions[i].x;
@@ -715,8 +715,23 @@
                             ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
                             ctx.restore();
                         } else {
-                            ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
-                        }
+                        let sw = img.width;
+                            let sh = img.height;
+                            let sx = 0;
+                            let sy = 0;
+
+                            const targetRatio = cfg.photoW / cfg.photoH;
+                            const imgRatio = sw / sh;
+
+                            if (imgRatio > targetRatio) {
+                                sw = sh * targetRatio;
+                                sx = (img.width - sw) / 2;
+                            } else {
+                                sh = sw / targetRatio;
+                                sy = (img.height - sh) / 2;
+                            }
+
+                            ctx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);                        }
                         r();
                     };
                     img.onerror = () => { r(); };
@@ -730,86 +745,69 @@
             document.getElementById('downloadOptions').style.display = 'flex';
         }
 
-       function getLayoutConfig() {
+   function getLayoutConfig() {
 
-    // 🩷 Pink (4 foto)
     if (selectedLayout === 'layoutA') {
         return {
-            photoW: 380,
-            photoH: 500,
+            photoW: 340,
+            photoH: 460,
             positions: [
-                { x: 60, y: 200 },
-                { x: 430, y: 200 },
-                { x: 60, y: 800 },
-                { x: 430, y: 800 }
+                { x: 60, y: 180 },
+                { x: 400, y: 180 },
+                { x: 60, y: 760 },
+                { x: 400, y: 760 }
             ]
         };
     }
 
-    // 🧸 Teddy (bulat)
     if (selectedLayout === 'layoutB') {
         return {
             photoW: 500,
             photoH: 500,
             positions: [
-                { x: 140, y: 150 },
-                { x: 140, y: 800 },
-                { x: 140, y: 1450 }
+                { x: 120, y: 120 },
+                { x: 120, y: 780 },
+                { x: 120, y: 1440 }
             ]
         };
     }
 
-    // 🌫️ Abu
     if (selectedLayout === 'layoutC') {
         return {
             photoW: 650,
             photoH: 480,
             positions: [
-                { x: 75, y: 130 },
-                { x: 75, y: 800 },
-                { x: 75, y: 1470 }
+                { x: 70, y: 130 },
+                { x: 70, y: 800 },
+                { x: 70, y: 1470 }
             ]
         };
     }
 
-    // 🌼 Vintage
     if (selectedLayout === 'layoutD') {
         return {
             photoW: 650,
             photoH: 600,
             positions: [
-                { x: 75, y: 100 },
-                { x: 75, y: 850 },
-                { x: 75, y: 1600 }
+                { x: 70, y: 100 },
+                { x: 70, y: 850 },
+                { x: 70, y: 1600 }
             ]
         };
     }
 
-    // 🖥️ Windows XP (1 foto)
-    if (selectedLayout === 'layoutG') {
-        return {
-            photoW: 600,
-            photoH: 600,
-            positions: [
-                { x: 140, y: 250 }
-            ]
-        };
-    }
-
-    // 🌊 Laut
     if (selectedLayout === 'layoutH') {
         return {
             photoW: 650,
             photoH: 500,
             positions: [
-                { x: 75, y: 120 },
-                { x: 75, y: 800 },
-                { x: 75, y: 1450 }
+                { x: 70, y: 120 },
+                { x: 70, y: 800 },
+                { x: 70, y: 1450 }
             ]
         };
     }
 
-    // default fallback
     return {
         photoW: 700,
         photoH: 525,
@@ -820,7 +818,6 @@
         ]
     };
 }
-
         function downloadImage() {
             const link = document.createElement('a');
             link.download = `archive_${Date.now()}.jpg`;
@@ -861,7 +858,29 @@
                         xPos = cfg.startX;
                         yPos = cfg.startY + (p * (cfg.photoH + cfg.gap));
                     }
-                    tCtx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
+                   ctx.save();
+ctx.beginPath();
+ctx.arc(xPos + cfg.photoW/2, yPos + cfg.photoH/2, cfg.photoW/2, 0, Math.PI * 2);
+ctx.clip();
+
+let sw = img.width;
+let sh = img.height;
+let sx = 0;
+let sy = 0;
+
+const targetRatio = cfg.photoW / cfg.photoH;
+const imgRatio = sw / sh;
+
+if (imgRatio > targetRatio) {
+    sw = sh * targetRatio;
+    sx = (img.width - sw) / 2;
+} else {
+    sh = sw / targetRatio;
+    sy = (img.height - sh) / 2;
+}
+
+ctx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
+ctx.restore();
                     r();
                 };
                 img.onerror = () => { r(); };
