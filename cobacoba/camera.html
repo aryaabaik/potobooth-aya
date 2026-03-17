@@ -359,10 +359,12 @@
         else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/framea.png'; }
         else { maxPoses = 3; frameImg.src = 'frames/1.png'; }
 
-        // Set Aspect Ratio for Strips
-        if (['layoutA','layoutB','layoutC','layoutD','layoutE','layoutF','layoutH','layoutI','layoutJ'].includes(selectedLayout)) {
-            camBox.style.aspectRatio = "800/2400";
-        }
+        // Set Aspect Ratio for CamBox (Normal View)
+        camBox.style.aspectRatio = "4/3";
+        camBox.style.width = "100%";
+        camBox.style.maxWidth = "450px";
+        camBox.style.overflow = "hidden";
+        video.style.objectFit = "cover";
 
         // RESET IF LAYOUT CHANGED (Safety check)
         const lastLayout = localStorage.getItem('lastUsedLayout');
@@ -611,25 +613,9 @@
     tempCtx.translate(cfg.photoW, 0);
     tempCtx.scale(-1, 1);
 
-    // DRAW DENGAN 9 PARAMETER UNTUK CROP
-if (selectedLayout === 'layoutB') {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(
-        xPos + cfg.photoW/2,
-        yPos + cfg.photoH/2,
-        cfg.photoW/2,
-        0,
-        Math.PI * 2
-    );
-    ctx.clip();
-}
-
-ctx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
-
-if (selectedLayout === 'layoutB') {
-    ctx.restore();
-}    
+    // DRAW
+    tempCtx.drawImage(video, sX, sY, sW, sH, 0, 0, cfg.photoW, cfg.photoH);
+    
     tempCtx.restore();
 
     // Fill white background to prevent black bars if anything goes wrong
@@ -717,9 +703,20 @@ if (selectedLayout === 'layoutB') {
                 img.src = photos[i]; 
                 await new Promise(r => {
                     img.onload = () => {
-                        let xPos = cfg.positions[i].x;
-                        let yPos = cfg.positions[i].y;
-                        ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
+                        const xPos = cfg.positions[i].x;
+                        const yPos = cfg.positions[i].y;
+                        
+                        // Handle Circular Crop for Teddy (Layout B)
+                        if (selectedLayout === 'layoutB') {
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.arc(xPos + cfg.photoW/2, yPos + cfg.photoH/2, cfg.photoW/2, 0, Math.PI * 2);
+                            ctx.clip();
+                            ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
+                            ctx.restore();
+                        } else {
+                            ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
+                        }
                         r();
                     };
                     img.onerror = () => { r(); };
