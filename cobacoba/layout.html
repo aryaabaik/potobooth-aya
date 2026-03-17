@@ -235,7 +235,11 @@
 
         function selectLayout(layoutName, element) {
             localStorage.setItem('selectedLayout', layoutName);
-            document.querySelectorAll('.frame-card').forEach(c => c.classList.remove('selected'));
+            // RESET SESSION DATA WHEN NEW LAYOUT SELECTED
+            localStorage.removeItem('p_photos');
+            localStorage.removeItem('p_raw');
+            
+            document.querySelectorAll('.frame-card').forEach(c => b => c.classList.remove('selected'));
             element.classList.add('selected');
 
             if (navigator.vibrate) navigator.vibrate(40);

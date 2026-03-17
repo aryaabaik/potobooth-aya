@@ -357,6 +357,14 @@
         else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/framea.png'; }
         else { maxPoses = 3; frameImg.src = 'frames/1.png'; }
 
+        // RESET IF LAYOUT CHANGED (Safety check)
+        const lastLayout = localStorage.getItem('lastUsedLayout');
+        if (lastLayout !== selectedLayout) {
+            localStorage.removeItem('p_photos');
+            localStorage.removeItem('p_raw');
+            localStorage.setItem('lastUsedLayout', selectedLayout);
+        }
+
         function updatePoseDisplay() {
             document.getElementById('poseDisplay').innerText = `${photos.length}/${maxPoses}`;
         }
