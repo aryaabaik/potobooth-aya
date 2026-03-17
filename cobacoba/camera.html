@@ -426,57 +426,65 @@
             document.getElementById('filterContainer').style.display = 'block';
         }
 
-   async function startSequence() {
-    startBtn.disabled = true;
-    document.getElementById('filterContainer').style.display = 'none';
-    const camBox = document.getElementById('camBox'); // Ambil element camBox
+    async function startSequence() {
+        if (photos.length >= maxPoses) return;
+        
+        try {
+            startBtn.disabled = true;
+            document.getElementById('filterContainer').style.display = 'none';
+            const camBox = document.getElementById('camBox');
 
-    if(photos.length < maxPoses) {
-        // COUNTDOWN WITH BEEP (1s)
-        countdownEl.style.display = 'block';
-        for (let i = 3; i > 1; i--) {
-            countdownEl.innerText = i;
-            playSound('beep', 1000); 
-            await new Promise(r => setTimeout(r, 1000));
+            // COUNTDOWN WITH BEEP
+            countdownEl.style.display = 'block';
+            for (let i = 3; i >= 1; i--) {
+                countdownEl.innerText = i;
+                try { playSound('beep', 800); } catch(e) { console.warn("Audio fail", e); }
+                await new Promise(r => setTimeout(r, 1000));
+            }
+            
+            countdownEl.innerText = "";
+            liveTag.style.display = 'block';
+            
+            const currentPoseFrames = [];
+            for(let i=0; i<6; i++) {
+                const frame = captureFrameManual();
+                if (frame) currentPoseFrames.push(frame);
+                await new Promise(r => setTimeout(r, 150));
+            }
+
+            // --- FLASH + SHUTTER + GLITCH ---
+            const flash = document.getElementById('flash');
+            flash.style.display = 'block';
+            camBox.classList.add('glitch-active');
+            try { playSound('shutter'); } catch(e) { console.warn("Audio fail", e); }
+            
+            setTimeout(() => {
+                flash.style.display = 'none';
+                camBox.classList.remove('glitch-active');
+            }, 400);
+
+            countdownEl.style.display = 'none';
+            liveTag.style.display = 'none';
+            
+            loading.style.display = 'block';
+            loading.innerText = "PROCESSING_POSE...";
+
+            const cfg = getLayoutConfig();
+            const gifData = await makeGif(currentPoseFrames, cfg.photoW, cfg.photoH); 
+            
+            rawFrames.push(currentPoseFrames);
+            photos.push(gifData);
+            
+            updateInventory();
+        } catch (err) {
+            console.error("Sequence Error:", err);
+            alert("Oops! Something went wrong during capture. Please try again.");
+        } finally {
+            loading.style.display = 'none';
+            startBtn.disabled = false;
+            document.getElementById('filterContainer').style.display = 'block';
         }
-        
-        countdownEl.innerText = "1";
-        playSound('beep', 1000);
-        await new Promise(r => setTimeout(r, 1000));
-
-        liveTag.style.display = 'block';
-        const currentPoseFrames = [];
-        for(let i=0; i<6; i++) {
-            currentPoseFrames.push(captureFrameManual());
-            await new Promise(r => setTimeout(r, 150));
-        }
-
-        // --- FLASH + SHUTTER + GLITCH ---
-        const flash = document.getElementById('flash');
-        
-        // Aktifkan Efek
-        flash.style.display = 'block';
-        camBox.classList.add('glitch-active'); // MULAI GLITCH
-        playSound('shutter', 2000); 
-        
-        // Matikan Flash & Glitch setelah durasi singkat
-        setTimeout(() => {
-            flash.style.display = 'none';
-            camBox.classList.remove('glitch-active'); // STOP GLITCH
-        }, 400); // Glitch cuma 0.4 detik biar dramatis
-
-        countdownEl.style.display = 'none';
-        liveTag.style.display = 'none';
-        
-        const cfg = getLayoutConfig();
-        const gifData = await makeGif(currentPoseFrames, cfg.photoW, cfg.photoH); 
-        rawFrames.push(currentPoseFrames);
-        photos.push(gifData);
-        loading.style.display = 'none';
-        updateInventory();
     }
-    startBtn.disabled = false;
-}
 
         function applyDithering(imageData) {
             const data = imageData.data;
@@ -547,8 +555,8 @@
     const tempCtx = tempCanvas.getContext('2d');
     
     // --- LOGIKA ANTI GEPENG (CENTER CROP) ---
-    const videoW = video.videoWidth;
-    const videoH = video.videoHeight;
+    const videoW = video.videoWidth || 640;
+    const videoH = video.videoHeight || 480;
     const targetRatio = cfg.photoW / cfg.photoH;
     const videoRatio = videoW / videoH;
 
@@ -614,15 +622,22 @@
 
         function makeGif(frames, w, h) {
             return new Promise(resolve => {
-                gifshot.createGIF({ 
-                    images: frames, 
-                    gifWidth: Math.round(w), 
-                    gifHeight: Math.round(h), 
-                    interval: 0.1,
-                    numWorkers: 4,
-                    sampleInterval: 5
-                }, 
-                function(obj) { if(!obj.error) resolve(obj.image); resolve(frames[0]); });
+        gifshot.createGIF({ 
+            images: frames.length > 0 ? frames : [video], 
+            gifWidth: Math.round(w), 
+            gifHeight: Math.round(h), 
+            interval: 0.1,
+            numWorkers: 2, // Reducing workers for mobile stability
+            sampleInterval: 10
+        }, 
+        function(obj) { 
+            if(!obj.error) {
+                resolve(obj.image);
+            } else {
+                console.error("Gifshot error:", obj.error);
+                resolve(frames[0] || ""); 
+            }
+        });
             });
         }
 
