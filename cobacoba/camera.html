@@ -346,16 +346,23 @@
         let maxPoses = 3; 
         const frameImg = new Image();
 
-        if (selectedLayout === 'layoutB') { maxPoses = 3; frameImg.src = 'frames/3.png'; } 
-        else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/2.png'; } 
+        // MAPPING: Ensure frame images match what's in layout.html
+        if (selectedLayout === 'layoutA') { maxPoses = 3; frameImg.src = 'frames/1.png'; }
+        else if (selectedLayout === 'layoutB') { maxPoses = 3; frameImg.src = 'frames/2.png'; } 
+        else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/3.png'; } 
         else if (selectedLayout === 'layoutD') { maxPoses = 3; frameImg.src = 'frames/4.png'; } 
         else if (selectedLayout === 'layoutE') { maxPoses = 3; frameImg.src = 'frames/8.png'; } 
-        else if (selectedLayout === 'layoutF') { maxPoses = 3; frameImg.src = 'frames/9.png'; camBox.style.aspectRatio = "800/2400"; } 
+        else if (selectedLayout === 'layoutF') { maxPoses = 3; frameImg.src = 'frames/9.png'; } 
         else if (selectedLayout === 'layoutG') { maxPoses = 1; frameImg.src = 'frames/6.png'; camBox.style.aspectRatio = "640/788"; } 
         else if (selectedLayout === 'layoutH') { maxPoses = 3; frameImg.src = 'frames/framea1.png'; } 
-        else if (selectedLayout === 'layoutI') { maxPoses = 3; frameImg.src = 'frames/9.png'; camBox.style.aspectRatio = "800/2400"; } 
+        else if (selectedLayout === 'layoutI') { maxPoses = 3; frameImg.src = 'frames/9.png'; } 
         else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/framea.png'; }
         else { maxPoses = 3; frameImg.src = 'frames/1.png'; }
+
+        // Set Aspect Ratio for Strips
+        if (['layoutA','layoutB','layoutC','layoutD','layoutE','layoutF','layoutH','layoutI','layoutJ'].includes(selectedLayout)) {
+            camBox.style.aspectRatio = "800/2400";
+        }
 
         // RESET IF LAYOUT CHANGED (Safety check)
         const lastLayout = localStorage.getItem('lastUsedLayout');
@@ -683,25 +690,19 @@
             canvas.width = isLargeLayout ? 1080 : 800;
             canvas.height = isLargeLayout ? 1920 : 2400;
 
-            // Fill white background dulu biar tidak ada black bar
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            let cfg = getLayoutConfig();
+            const cfg = getLayoutConfig();
             
             for (let i = 0; i < photos.length; i++) {
+                if (!photos[i]) continue;
                 const img = new Image();
                 img.src = photos[i]; 
                 await new Promise(r => {
                     img.onload = () => {
-                        let xPos, yPos;
-                        if (cfg.positions && cfg.positions[i]) {
-                            xPos = cfg.positions[i].x;
-                            yPos = cfg.positions[i].y;
-                        } else {
-                            xPos = cfg.startX || 45;
-                            yPos = (cfg.startY || 50) + (i * (cfg.photoH + (cfg.gap || 190)));
-                        }
+                        let xPos = cfg.positions[i].x;
+                        let yPos = cfg.positions[i].y;
                         ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
                         r();
                     };
@@ -710,30 +711,44 @@
             }
             ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
             resolve();
-        }, 3000); 
+        }, 1500); // 1.5s is enough
     });
             loading.style.display = 'none';
             document.getElementById('downloadOptions').style.display = 'flex';
         }
 
         function getLayoutConfig() {
-            // Standard vertical strip coordinate system (3 photos)
-            // Using common positions that work for most frames (y: 50, 789, 1528)
-            const standardStrip = {
+            // ALL STRIPS (A, B, C, D, E, F, H, I, J) use this 3-photo coordinate system
+            if (['layoutA', 'layoutB', 'layoutC', 'layoutD', 'layoutE', 'layoutF', 'layoutH', 'layoutI', 'layoutJ'].includes(selectedLayout)) {
+                return {
+                    photoW: 710,
+                    photoH: 549,
+                    positions: [
+                        { x: 45, y: 133 },
+                        { x: 45, y: 833 },
+                        { x: 45, y: 1533 }
+                    ]
+                };
+            }
+            
+            if (selectedLayout === 'layoutG') {
+                return { 
+                    photoW: 586, 
+                    photoH: 798, 
+                    positions: [ { x: 343, y: 372 } ] 
+                };
+            }
+            
+            // Fallback default
+            return {
                 photoW: 710,
                 photoH: 549,
                 positions: [
-                    { x: 45, y: 50 },
-                    { x: 45, y: 789 },
-                    { x: 45, y: 1528 }
+                    { x: 45, y: 133 },
+                    { x: 45, y: 833 },
+                    { x: 45, y: 1533 }
                 ]
             };
-
-            if (['layoutA', 'layoutB', 'layoutC', 'layoutD', 'layoutE', 'layoutF', 'layoutH', 'layoutI', 'layoutJ'].includes(selectedLayout)) return standardStrip;
-            
-            if (selectedLayout === 'layoutG') return { photoW: 586, photoH: 798, startX: 343, startY: 372, gap: 0 };
-            
-            return standardStrip;
         }
 
         function downloadImage() {
