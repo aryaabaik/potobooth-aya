@@ -717,33 +717,24 @@
         }
 
         function getLayoutConfig() {
-            if (selectedLayout === 'layoutB') return { photoW: 710, photoH: 447, startX: 45, startY: 54, gap: 90 };
-            if (['layoutC', 'layoutD', 'layoutE'].includes(selectedLayout)) return { photoW: 710, photoH: 549, startX: 50, startY: 133, gap: 190 };
-            if (selectedLayout === 'layoutF') return { photoW: 640, photoH: 788, startX: 80, startY: 290, gap: 193 };
+            // Standard vertical strip coordinate system (3 photos)
+            const standardStrip = {
+                photoW: 710,
+                photoH: 549,
+                positions: [
+                    { x: 45, y: 133 },
+                    { x: 45, y: 833 },
+                    { x: 45, y: 1533 }
+                ]
+            };
+
+            if (selectedLayout === 'layoutB') return standardStrip;
+            if (['layoutC', 'layoutD', 'layoutE'].includes(selectedLayout)) return standardStrip;
+            if (selectedLayout === 'layoutF' || selectedLayout === 'layoutI') return standardStrip;
+            if (selectedLayout === 'layoutH' || selectedLayout === 'layoutJ') return standardStrip;
+            
             if (selectedLayout === 'layoutG') return { photoW: 586, photoH: 798, startX: 343, startY: 372, gap: 0 };
-            if (selectedLayout === 'layoutH') return { photoW: 710, photoH: 549, startX: 50, startY: 133, gap: 175 };
-            if (selectedLayout === 'layoutI' || selectedLayout === 'layoutF') {
-                return {
-                    photoW: 710,
-                    photoH: 549,
-                    positions: [
-                        { x: 45, y: 130 },
-                        { x: 45, y: 830 },
-                        { x: 45, y: 1530 }
-                    ]
-                };
-            }
-            if (selectedLayout === 'layoutJ') {
-                return {
-                    photoW: 700,
-                    photoH: 525,
-                    positions: [
-                        { x: 50, y: 133 },
-                        { x: 50, y: 833 },
-                        { x: 50, y: 1534 }
-                    ]
-                };
-            }
+            
             // Layout A Default
             return { photoW: 710, photoH: 549, startX: 43, startY: 50, gap: 190 };
         }
