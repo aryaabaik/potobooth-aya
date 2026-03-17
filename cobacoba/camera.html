@@ -242,7 +242,7 @@
         <button onclick="goBack()" class="btn-back">
             ← RETAKE_LAYOUT
         </button>
-        <div>SYS_SESSION // GEN_01</div>
+        <div>SYS_SESSION // GEN_01 <span style="opacity:0.3; font-size:8px;">v2.0-MOBILE</span></div>
     </div>
     <div class="pose-counter" id="poseDisplay">0/0</div>
     </div>
@@ -380,7 +380,13 @@
                 };
             } catch (err) { 
                 console.error("Camera Error: ", err);
-                alert("Cannot access camera. Please ensure permissions are granted and no other app is using it."); 
+                // Instead of alert, show a message in the camBox
+                const camBox = document.getElementById('camBox');
+                camBox.innerHTML += `
+                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); color:white; z-index:100; text-align:center; padding:20px;">
+                        <p style="font-size:12px;">CAMERA_NOT_FOUND_OR_BLOCKED</p>
+                        <button onclick="location.reload()" style="margin-top:10px; padding:10px; background:white; color:black; font-family:'Space Mono'; font-size:10px;">RELOAD_SYSTEM</button>
+                    </div>`;
             }
         }
 
@@ -637,10 +643,10 @@
             return new Promise(resolve => {
         gifshot.createGIF({ 
             images: frames, 
-            gifWidth: Math.round(w), 
-            gifHeight: Math.round(h), 
-            interval: 0.15,
-            numWorkers: 1, // Minimum workers for mobile stability
+            gifWidth: Math.round(w * 0.5), 
+            gifHeight: Math.round(h * 0.5), 
+            interval: 0.2,
+            numWorkers: 0, // Zero workers = main thread (slow but safe for low-end mobile)
             sampleInterval: 20, // Lower quality for speed
             quality: 10
         }, 
