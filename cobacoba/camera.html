@@ -425,21 +425,32 @@
             }
         }
 
+        function saveSession() {
+            sessionStorage.setItem('temp_photos', JSON.stringify(photos));
+            sessionStorage.setItem('temp_raw', JSON.stringify(rawFrames));
+        }
+
+        function loadSession() {
+            const savedPhotos = sessionStorage.getItem('temp_photos');
+            const savedRaw = sessionStorage.getItem('temp_raw');
+            if (savedPhotos && savedRaw) {
+                photos = JSON.parse(savedPhotos);
+                rawFrames = JSON.parse(savedRaw);
+                updateInventory();
+            }
+        }
+
         function retake(idx) {
             photos.splice(idx, 1);
             rawFrames.splice(idx, 1);
+            saveSession();
             updateInventory();
             document.getElementById('filterContainer').style.display = 'block';
         }
 
     async function startSequence() {
         if (photos.length >= maxPoses) return;
-        
-        // Ensure video is playing
-        if (video.readyState < 2) {
-            console.warn("Camera not ready yet...");
-            return;
-        }
+        if (video.readyState < 2) return;
 
         try {
             startBtn.disabled = true;
@@ -457,7 +468,6 @@
             countdownEl.innerText = "";
             liveTag.style.display = 'block';
             
-            // Capture fewer frames for mobile stability (4 instead of 6)
             const currentPoseFrames = [];
             for(let i=0; i<4; i++) {
                 const frame = captureFrameManual();
@@ -480,24 +490,19 @@
             liveTag.style.display = 'none';
             
             loading.style.display = 'block';
-            loading.innerText = "CAPTURING...";
+            loading.innerText = "SAVING_POSE...";
 
-            const cfg = getLayoutConfig();
-            
-            // Speed up GIF processing for mobile
-            // If GIF fails or takes too long (> 3s), we fallback to the first frame
-            const gifPromise = makeGif(currentPoseFrames, cfg.photoW * 0.7, cfg.photoH * 0.7);
-            const timeoutPromise = new Promise(r => setTimeout(() => r(currentPoseFrames[0]), 3000));
-            
-            const finalData = await Promise.race([gifPromise, timeoutPromise]);
+            // MOBILE PROTECTION: Don't make GIF now. Just use the first frame for the inventory.
+            // This prevents the browser from crashing due to memory usage.
+            const staticPreview = currentPoseFrames[0];
             
             rawFrames.push(currentPoseFrames);
-            photos.push(finalData);
+            photos.push(staticPreview);
             
+            saveSession();
             updateInventory();
         } catch (err) {
-            console.error("Mobile Capture Error:", err);
-            // Don't alert here to avoid blocking UI, just log it
+            console.error("Capture Fail:", err);
         } finally {
             loading.style.display = 'none';
             startBtn.disabled = false;
@@ -820,7 +825,10 @@
     });
 }
 
-        window.onload = initCamera;
+    window.onload = () => {
+        initCamera();
+        loadSession();
+    };
     </script>
 </body>
 </html>
