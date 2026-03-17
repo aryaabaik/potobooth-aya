@@ -850,37 +850,36 @@ else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/fr
             
             await new Promise(r => {
                 img.onload = () => {
-                    let xPos, yPos;
-                    if (cfg.positions) {
-                        xPos = cfg.positions[p].x;
-                        yPos = cfg.positions[p].y;
+                    const xPos = cfg.positions[p].x;
+                    const yPos = cfg.positions[p].y;
+                    
+                    // Center Crop Calculations
+                    let sw = img.width;
+                    let sh = img.height;
+                    let sx = 0;
+                    let sy = 0;
+                    const targetRatio = cfg.photoW / cfg.photoH;
+                    const imgRatio = sw / sh;
+
+                    if (imgRatio > targetRatio) {
+                        sw = sh * targetRatio;
+                        sx = (img.width - sw) / 2;
                     } else {
-                        xPos = cfg.startX;
-                        yPos = cfg.startY + (p * (cfg.photoH + cfg.gap));
+                        sh = sw / targetRatio;
+                        sy = (img.height - sh) / 2;
                     }
-                   ctx.save();
-ctx.beginPath();
-ctx.arc(xPos + cfg.photoW/2, yPos + cfg.photoH/2, cfg.photoW/2, 0, Math.PI * 2);
-ctx.clip();
 
-let sw = img.width;
-let sh = img.height;
-let sx = 0;
-let sy = 0;
-
-const targetRatio = cfg.photoW / cfg.photoH;
-const imgRatio = sw / sh;
-
-if (imgRatio > targetRatio) {
-    sw = sh * targetRatio;
-    sx = (img.width - sw) / 2;
-} else {
-    sh = sw / targetRatio;
-    sy = (img.height - sh) / 2;
-}
-
-ctx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
-ctx.restore();
+                    // Circular Clip ONLY for Layout B
+                    if (selectedLayout === 'layoutB') {
+                        tCtx.save();
+                        tCtx.beginPath();
+                        tCtx.arc(xPos + cfg.photoW/2, yPos + cfg.photoH/2, cfg.photoW/2, 0, Math.PI * 2);
+                        tCtx.clip();
+                        tCtx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
+                        tCtx.restore();
+                    } else {
+                        tCtx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
+                    }
                     r();
                 };
                 img.onerror = () => { r(); };
