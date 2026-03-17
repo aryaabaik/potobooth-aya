@@ -169,7 +169,7 @@
     <div class="tab-container">
         <button class="tab-btn active" onclick="switchTab('strip', this)">STRIP_TYPE</button>
         <button class="tab-btn" onclick="switchTab('story', this)">STORY_TYPE</button>
-        <button class="tab-btn" onclick="switchTab('special', this)">SPECIAL_RISKAA</button>
+        <!-- <button class="tab-btn" onclick="switchTab('special', this)">SPECIAL_BIASS</button> -->
     </div>
 
     <div id="strip" class="layout-section active">
@@ -178,26 +178,26 @@
                 <img src="frames/1.png" alt="Frame 1">
             </div>
             <div class="frame-card" data-type="BLK-02" onclick="selectLayout('layoutB', this)">
-                <img src="frames/2.png" alt="Frame 2">
+                <img src="frames/3.png" alt="Frame 2">
             </div>
             <div class="frame-card" data-type="RTR-03" onclick="selectLayout('layoutC', this)">
-                <img src="frames/3.png" alt="Frame 3">
+                <img src="frames/2.png" alt="Frame 3">
             </div>
             <div class="frame-card" data-type="HND-04" onclick="selectLayout('layoutD', this)">
-                <img src="frames/4.png" alt="Frame 4">
+                <img src="frames/8.png" alt="Frame 4">
             </div>
             <div class="frame-card" data-type="PNT-05" onclick="selectLayout('layoutE', this)">
-                <img src="frames/8.png" alt="Frame 5">
+                <img src="frames/4.png" alt="Frame 5">
             </div>
-            <div class="frame-card" data-type="CUT-06" onclick="selectLayout('layoutF', this)">
-                <img src="frames/9.png" alt="Frame 6">
-            </div>
-            <div class="frame-card" data-type="TS-08" onclick="selectLayout('layoutH', this)">
-                <img src="frames/framea1.png" alt="Frame 8">
-            </div>
-            <div class="frame-card" data-type="TS-08" onclick="selectLayout('layoutJ', this)">
-                <img src="frames/framea.png" alt="Frame 10">
-            </div>
+            <!-- <div class="frame-card" data-type="CUT-06" onclick="selectLayout('layoutF', this)">
+                <img src="frames/6.png" alt="Frame 6">
+            </div> -->
+            <!-- <div class="frame-card" data-type="TS-08" onclick="selectLayout('layoutH', this)">
+                <img src="frames/8.png" alt="Frame 8">
+            </div> -->
+            <!-- <div class="frame-card" data-type="TS-08" onclick="selectLayout('layoutJ', this)">
+                <img src="frames/10.png" alt="Frame 10">
+            </div> -->
         </div>
     </div>
 
@@ -210,7 +210,6 @@
     </div>
 
     <div id="special" class="layout-section">
-        <div class="grid-container">
             <div class="frame-card" data-type="Special" onclick="selectLayout('layoutI', this)">
                 <img src="frames/9.png" alt="Frame 9">
             </div>
@@ -235,10 +234,6 @@
 
         function selectLayout(layoutName, element) {
             localStorage.setItem('selectedLayout', layoutName);
-            // RESET SESSION DATA WHEN NEW LAYOUT SELECTED
-            localStorage.removeItem('p_photos');
-            localStorage.removeItem('p_raw');
-            
             document.querySelectorAll('.frame-card').forEach(c => c.classList.remove('selected'));
             element.classList.add('selected');
 
@@ -251,7 +246,6 @@
     </script>
 </body>
 </html>
-
 
 
 

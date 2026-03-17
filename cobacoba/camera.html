@@ -6,7 +6,7 @@
     <title>TIMELESS — ARCHIVING SESSION</title>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono&display=swap" rel="stylesheet">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.4.5/gifshot.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
 
     <style>
         /* --- CHRONOS THEME BASE --- */
@@ -77,7 +77,7 @@
             object-fit: cover; 
         }
 
-        #videoFeed { transform: scaleX(-1); filter: none; } /* Default matching Neutral filter */
+        #videoFeed { transform: scaleX(-1); filter: sepia(0.2); }
         #resultCanvas { display: none; background: white; border: 1px solid var(--ink); }
 
         #countdown { 
@@ -239,10 +239,10 @@
 
     <div class="top-info">
         <div style="display: flex; align-items: center; gap: 15px;">
-        <button onclick="goBack()" class="btn-back">
+        <button onclick="window.location.href='index.html'" class="btn-back">
             ← RETAKE_LAYOUT
         </button>
-        <div>SYS_SESSION // GEN_01 <span style="opacity:0.3; font-size:8px;">v2.0-MOBILE</span></div>
+        <div>SYS_SESSION // GEN_01</div>
     </div>
     <div class="pose-counter" id="poseDisplay">0/0</div>
     </div>
@@ -253,7 +253,7 @@
         <div class="live-tag" id="liveTag">● RECORDING</div>
         <div id="filterOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2; display:none; mix-blend-mode: multiply; opacity: 0.4; background: linear-gradient(45deg, #ffcc33, #ff6600);"></div>
         
-        <video id="videoFeed" autoplay playsinline muted></video>
+        <video id="videoFeed" autoplay playsinline></video>
         <canvas id="resultCanvas"></canvas>
     </div>
 
@@ -346,32 +346,16 @@
         let maxPoses = 3; 
         const frameImg = new Image();
 
-        // MAPPING: Ensure frame images match what's in layout.html
-       if (selectedLayout === 'layoutA') { maxPoses = 4; frameImg.src = 'frames/1.png'; }
-else if (selectedLayout === 'layoutB') { maxPoses = 3; frameImg.src = 'frames/2.png'; }
-else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/3.png'; }
-else if (selectedLayout === 'layoutD') { maxPoses = 3; frameImg.src = 'frames/4.png'; }
-else if (selectedLayout === 'layoutE') { maxPoses = 3; frameImg.src = 'frames/8.png'; }
-else if (selectedLayout === 'layoutF') { maxPoses = 3; frameImg.src = 'frames/9.png'; }
-else if (selectedLayout === 'layoutG') { maxPoses = 1; frameImg.src = 'frames/6.png'; }
-else if (selectedLayout === 'layoutH') { maxPoses = 3; frameImg.src = 'frames/framea1.png'; }
-else if (selectedLayout === 'layoutI') { maxPoses = 3; frameImg.src = 'frames/9.png'; }
-else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/framea.png'; }
-
-        // Set Aspect Ratio for CamBox (Normal View)
-        camBox.style.aspectRatio = "4/3";
-        camBox.style.width = "100%";
-        camBox.style.maxWidth = "450px";
-        camBox.style.overflow = "hidden";
-        video.style.objectFit = "cover";
-
-        // RESET IF LAYOUT CHANGED (Safety check)
-        const lastLayout = localStorage.getItem('lastUsedLayout');
-        if (lastLayout !== selectedLayout) {
-            localStorage.removeItem('p_photos');
-            localStorage.removeItem('p_raw');
-            localStorage.setItem('lastUsedLayout', selectedLayout);
-        }
+        if (selectedLayout === 'layoutB') { maxPoses = 4; frameImg.src = 'frames/3.png'; } 
+        else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/2.png'; } 
+        else if (selectedLayout === 'layoutD') { maxPoses = 3; frameImg.src = 'frames/8.png'; } 
+        else if (selectedLayout === 'layoutE') { maxPoses = 3; frameImg.src = 'frames/4.png'; } 
+        else if (selectedLayout === 'layoutF') { maxPoses = 2; frameImg.src = 'frames/6.png'; camBox.style.aspectRatio = "640/788"; } 
+        // else if (selectedLayout === 'layoutG') { maxPoses = 1; frameImg.src = 'frames/6.png'; camBox.style.aspectRatio = "640/788"; } 
+        // else if (selectedLayout === 'layoutH') { maxPoses = 3; frameImg.src = 'frames/8.png'; } 
+        // else if (selectedLayout === 'layoutI') { maxPoses = 4; frameImg.src = 'frames/9.png'; camBox.style.aspectRatio = "640/788"; } 
+        // else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/10.png'; }
+        else { maxPoses = 3; frameImg.src = 'frames/1.png'; }
 
         function updatePoseDisplay() {
             document.getElementById('poseDisplay').innerText = `${photos.length}/${maxPoses}`;
@@ -380,30 +364,11 @@ else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/fr
         
         async function initCamera() {
             try {
-                const constraints = { 
-                    video: { 
-                        width: { ideal: 640 }, 
-                        height: { ideal: 480 },
-                        facingMode: "user"
-                    }, 
-                    audio: false 
-                };
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 1280, height: 960 }, audio: false 
+                });
                 video.srcObject = stream;
-                
-                video.onloadedmetadata = () => {
-                    video.play().catch(err => console.error("Auto-play was prevented:", err));
-                };
-            } catch (err) { 
-                console.error("Camera Error: ", err);
-                // Instead of alert, show a message in the camBox
-                const camBox = document.getElementById('camBox');
-                camBox.innerHTML += `
-                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); color:white; z-index:100; text-align:center; padding:20px;">
-                        <p style="font-size:12px;">CAMERA_NOT_FOUND_OR_BLOCKED</p>
-                        <button onclick="location.reload()" style="margin-top:10px; padding:10px; background:white; color:black; font-family:'Space Mono'; font-size:10px;">RELOAD_SYSTEM</button>
-                    </div>`;
-            }
+            } catch (err) { alert("Access Denied: Camera not found."); }
         }
 
         function setFilter(filter, el) {
@@ -441,79 +406,64 @@ else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/fr
             }
         }
 
-        function saveSession() {
-            try {
-                localStorage.setItem('p_photos', JSON.stringify(photos));
-                localStorage.setItem('p_raw', JSON.stringify(rawFrames));
-            } catch(e) { console.warn("Local storage full", e); }
-        }
-
-        function loadSession() {
-            const savedPhotos = localStorage.getItem('p_photos');
-            const savedRaw = localStorage.getItem('p_raw');
-            if (savedPhotos && savedRaw) {
-                photos = JSON.parse(savedPhotos);
-                rawFrames = JSON.parse(savedRaw);
-                updateInventory();
-            }
-        }
-
         function retake(idx) {
             photos.splice(idx, 1);
             rawFrames.splice(idx, 1);
-            saveSession();
             updateInventory();
             document.getElementById('filterContainer').style.display = 'block';
         }
 
-    async function startSequence() {
-        if (photos.length >= maxPoses) return;
-        if (video.readyState < 2) return;
+   async function startSequence() {
+    startBtn.disabled = true;
+    document.getElementById('filterContainer').style.display = 'none';
+    const camBox = document.getElementById('camBox'); // Ambil element camBox
 
-        try {
-            startBtn.disabled = true;
-            document.getElementById('filterContainer').style.display = 'none';
-            
-            // COUNTDOWN
-            countdownEl.style.display = 'block';
-            for (let i = 3; i >= 1; i--) {
-                countdownEl.innerText = i;
-                try { sfx.beep.play(); } catch(e) {}
-                await new Promise(r => setTimeout(r, 1000));
-            }
-            countdownEl.style.display = 'none';
-            
-            loading.style.display = 'block';
-            loading.innerText = "CAPTURING...";
-
-            // CAPTURE ONLY 2 FRAMES FOR MOBILE (to save RAM)
-            const currentPoseFrames = [];
-            for(let i=0; i<2; i++) {
-                const frame = captureFrameManual();
-                if (frame) currentPoseFrames.push(frame);
-                await new Promise(r => setTimeout(r, 300));
-            }
-
-            // FLASH
-            const flash = document.getElementById('flash');
-            flash.style.display = 'block';
-            try { sfx.shutter.play(); } catch(e) {}
-            setTimeout(() => { flash.style.display = 'none'; }, 200);
-
-            // STORE DATA
-            photos.push(currentPoseFrames[0]); // Preview is first frame
-            rawFrames.push(currentPoseFrames);
-            
-            saveSession();
-            updateInventory();
-        } catch (err) {
-            console.error("Critical Capture Error", err);
-        } finally {
-            loading.style.display = 'none';
-            startBtn.disabled = false;
-            document.getElementById('filterContainer').style.display = 'block';
+    if(photos.length < maxPoses) {
+        // COUNTDOWN WITH BEEP (1s)
+        countdownEl.style.display = 'block';
+        for (let i = 3; i > 1; i--) {
+            countdownEl.innerText = i;
+            playSound('beep', 1000); 
+            await new Promise(r => setTimeout(r, 1000));
         }
+        
+        countdownEl.innerText = "1";
+        playSound('beep', 1000);
+        await new Promise(r => setTimeout(r, 1000));
+
+        liveTag.style.display = 'block';
+        const currentPoseFrames = [];
+        for(let i=0; i<6; i++) {
+            currentPoseFrames.push(captureFrameManual());
+            await new Promise(r => setTimeout(r, 150));
+        }
+
+        // --- FLASH + SHUTTER + GLITCH ---
+        const flash = document.getElementById('flash');
+        
+        // Aktifkan Efek
+        flash.style.display = 'block';
+        camBox.classList.add('glitch-active'); // MULAI GLITCH
+        playSound('shutter', 2000); 
+        
+        // Matikan Flash & Glitch setelah durasi singkat
+        setTimeout(() => {
+            flash.style.display = 'none';
+            camBox.classList.remove('glitch-active'); // STOP GLITCH
+        }, 400); // Glitch cuma 0.4 detik biar dramatis
+
+        countdownEl.style.display = 'none';
+        liveTag.style.display = 'none';
+        
+        loading.style.display = 'block';
+        const gifData = await makeGif(currentPoseFrames); 
+        rawFrames.push(currentPoseFrames);
+        photos.push(gifData);
+        loading.style.display = 'none';
+        updateInventory();
     }
+    startBtn.disabled = false;
+}
 
         function applyDithering(imageData) {
             const data = imageData.data;
@@ -584,8 +534,8 @@ else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/fr
     const tempCtx = tempCanvas.getContext('2d');
     
     // --- LOGIKA ANTI GEPENG (CENTER CROP) ---
-    const videoW = video.videoWidth || 640;
-    const videoH = video.videoHeight || 480;
+    const videoW = video.videoWidth;
+    const videoH = video.videoHeight;
     const targetRatio = cfg.photoW / cfg.photoH;
     const videoRatio = videoW / videoH;
 
@@ -612,62 +562,38 @@ else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/fr
     tempCtx.translate(cfg.photoW, 0);
     tempCtx.scale(-1, 1);
 
-    // DRAW
+    // DRAW DENGAN 9 PARAMETER UNTUK CROP
     tempCtx.drawImage(video, sX, sY, sW, sH, 0, 0, cfg.photoW, cfg.photoH);
     
     tempCtx.restore();
 
-    // Fill white background to prevent black bars if anything goes wrong
-    const whiteBgCanvas = document.createElement('canvas');
-    whiteBgCanvas.width = cfg.photoW;
-    whiteBgCanvas.height = cfg.photoH;
-    const wCtx = whiteBgCanvas.getContext('2d');
-    wCtx.fillStyle = '#ffffff';
-    wCtx.fillRect(0, 0, cfg.photoW, cfg.photoH);
-    wCtx.drawImage(tempCanvas, 0, 0);
-
     // Logika tambahan untuk filter khusus (sunset, dither, dll) tetap sama
     if (currentFilter === 'sunset') {
-        wCtx.globalAlpha = 0.3;
-        wCtx.globalCompositeOperation = 'multiply';
-        const grad = wCtx.createLinearGradient(0,0,0,cfg.photoH);
+        tempCtx.globalAlpha = 0.3;
+        tempCtx.globalCompositeOperation = 'multiply';
+        const grad = tempCtx.createLinearGradient(0,0,0,cfg.photoH);
         grad.addColorStop(0, '#ffcc33'); grad.addColorStop(1, '#ff6600');
-        wCtx.fillStyle = grad;
-        wCtx.fillRect(0,0,cfg.photoW, cfg.photoH);
+        tempCtx.fillStyle = grad;
+        tempCtx.fillRect(0,0,cfg.photoW, cfg.photoH);
     }
     
     if (currentFilter === 'dither') {
-        let imgData = wCtx.getImageData(0, 0, cfg.photoW, cfg.photoH);
+        let imgData = tempCtx.getImageData(0, 0, cfg.photoW, cfg.photoH);
         imgData = applyDithering(imgData);
-        wCtx.putImageData(imgData, 0, 0);
+        tempCtx.putImageData(imgData, 0, 0);
     }
     
     if (currentFilter === 'halftone') {
-        applyHalftone(wCtx, cfg.photoW, cfg.photoH);
+        applyHalftone(tempCtx, cfg.photoW, cfg.photoH);
     }
 
-    return whiteBgCanvas.toDataURL('image/jpeg', 0.6); // LOWER QUALITY FOR MOBILE
+    return tempCanvas.toDataURL('image/jpeg', 0.9); // Kualitas ditingkatkan ke 0.9
 }
 
-        function makeGif(frames, w, h) {
+        function makeGif(frames) {
             return new Promise(resolve => {
-        gifshot.createGIF({ 
-            images: frames, 
-            gifWidth: Math.round(w * 0.5), 
-            gifHeight: Math.round(h * 0.5), 
-            interval: 0.2,
-            numWorkers: 0, // Zero workers = main thread (slow but safe for low-end mobile)
-            sampleInterval: 20, // Lower quality for speed
-            quality: 10
-        }, 
-        function(obj) { 
-            if(!obj.error) {
-                resolve(obj.image);
-            } else {
-                console.error("Gifshot error:", obj.error);
-                resolve(frames[0] || ""); 
-            }
-        });
+                gifshot.createGIF({ images: frames, gifWidth: 400, gifHeight: 300, interval: 0.1 }, 
+                function(obj) { if(!obj.error) resolve(obj.image); });
             });
         }
 
@@ -682,142 +608,78 @@ else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/fr
     video.style.display = 'none';
     canvas.style.display = 'block';
 
-    try { await frameImg.decode(); } catch(e) { console.warn("Frame not found or error", e); }
+    await frameImg.decode();
 
     await new Promise(resolve => {
         setTimeout(async () => {
-            const isLargeLayout = (selectedLayout === 'layoutG');
+            const isLargeLayout = (selectedLayout === 'layoutG' || selectedLayout === 'layoutI');
             
             canvas.width = isLargeLayout ? 1080 : 800;
             canvas.height = isLargeLayout ? 1920 : 2400;
 
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            const cfg = getLayoutConfig();
+            let cfg = getLayoutConfig();
             
             for (let i = 0; i < photos.length; i++) {
-                if (!photos[i]) continue;
                 const img = new Image();
-                img.src = photos[i];
-                img.crossOrigin = "anonymous"; 
+                img.src = photos[i]; 
                 await new Promise(r => {
                     img.onload = () => {
-                        const xPos = cfg.positions[i].x;
-                        const yPos = cfg.positions[i].y;
-                        
-                        // Handle Circular Crop for Teddy (Layout B)
-                        if (selectedLayout === 'layoutB') {
-                            ctx.save();
-                            ctx.beginPath();
-                            ctx.arc(xPos + cfg.photoW/2, yPos + cfg.photoH/2, cfg.photoW/2, 0, Math.PI * 2);
-                            ctx.clip();
-                            ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
-                            ctx.restore();
-                        } else {
-                        let sw = img.width;
-                            let sh = img.height;
-                            let sx = 0;
-                            let sy = 0;
+    let xPos, yPos;
+    if (cfg.positions) {
+        xPos = cfg.positions[i].x;
+        yPos = cfg.positions[i].y;
+    } else {
+        xPos = cfg.startX;
+        yPos = cfg.startY + (i * (cfg.photoH + cfg.gap));
+    }
 
-                            const targetRatio = cfg.photoW / cfg.photoH;
-                            const imgRatio = sw / sh;
-
-                            if (imgRatio > targetRatio) {
-                                sw = sh * targetRatio;
-                                sx = (img.width - sw) / 2;
-                            } else {
-                                sh = sw / targetRatio;
-                                sy = (img.height - sh) / 2;
-                            }
-
-                            ctx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);                        }
-                        r();
-                    };
-                    img.onerror = () => { r(); };
+    // Karena foto sudah di-crop di captureFrameManual, tinggal tempel:
+    ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
+    r();
+}
                 });
             }
             ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
             resolve();
-        }, 1500); // 1.5s is enough
+        }, 3000); 
     });
             loading.style.display = 'none';
             document.getElementById('downloadOptions').style.display = 'flex';
         }
 
-   function getLayoutConfig() {
+        function getLayoutConfig() {
+            if (selectedLayout === 'layoutB') return { photoW: 710, photoH: 447, startX: 45, startY: 54, gap: 90 };
+            if (['layoutC', 'layoutD', 'layoutE',].includes(selectedLayout)) return { photoW: 710, photoH: 549, startX: 50, startY: 133, gap: 190 };
+            if (selectedLayout === 'layoutF') return { photoW: 640, photoH: 788, startX: 80, startY: 290, gap: 193 };
+            if (selectedLayout === 'layoutG') return { photoW: 586, photoH: 798, startX: 343, startY: 372, gap: 0};
+            if (selectedLayout === 'layoutI') {
+            return {
+                photoW: 485,  // Berdasarkan screenshot lo
+                photoH: 597,  // Berdasarkan screenshot lo
+                // Karena posisinya custom (tidak cuma vertikal), kita buat array koordinat
+                positions: [
+                    { x: 34,  y: 186 }, // Foto 1 (Kiri Atas)
+                    { x: 564, y: 186 }, // Foto 2 (Kanan Atas)
+                    { x: 29,  y: 905 }, // Foto 3 (Kiri Bawah - Estimasi gap 122)
+                    { x: 564, y: 905 }  // Foto 4 (Kanan Bawah - Estimasi gap 122)
+                    ]
+                };
+            }
+            if (selectedLayout === 'layoutJ') {
+            return {
+                photoW: 700,  // Lebar berdasarkan screenshot Canva kamu
+                photoH: 525,  // Tinggi berdasarkan screenshot Canva kamu
+                // Kita tentukan koordinat X dan Y untuk masing-masing dari 3 foto
+                positions: [
+                    { x: 50,  y: 133 },  // Foto 1 (Kiri Atas)
+                    { x: 50, y: 833 },  // Foto 2 (Kanan Atas)
+                    { x: 50,  y: 1533.5 }   // Foto 3 (Kiri Bawah) -> Angka 905 ini estimasi, silakan cek Y di Canva untuk kotak bawah
+                    ]
+                };
+            }
+            return { photoW: 710, photoH: 549, startX: 43, startY: 50, gap: 190 };
+        }
 
-    if (selectedLayout === 'layoutA') {
-        return {
-            photoW: 340,
-            photoH: 460,
-            positions: [
-                { x: 60, y: 180 },
-                { x: 400, y: 180 },
-                { x: 60, y: 760 },
-                { x: 400, y: 760 }
-            ]
-        };
-    }
-
-    if (selectedLayout === 'layoutB') {
-        return {
-            photoW: 500,
-            photoH: 500,
-            positions: [
-                { x: 120, y: 120 },
-                { x: 120, y: 780 },
-                { x: 120, y: 1440 }
-            ]
-        };
-    }
-
-    if (selectedLayout === 'layoutC') {
-        return {
-            photoW: 650,
-            photoH: 480,
-            positions: [
-                { x: 70, y: 130 },
-                { x: 70, y: 800 },
-                { x: 70, y: 1470 }
-            ]
-        };
-    }
-
-    if (selectedLayout === 'layoutD') {
-        return {
-            photoW: 650,
-            photoH: 600,
-            positions: [
-                { x: 70, y: 100 },
-                { x: 70, y: 850 },
-                { x: 70, y: 1600 }
-            ]
-        };
-    }
-
-    if (selectedLayout === 'layoutH') {
-        return {
-            photoW: 650,
-            photoH: 500,
-            positions: [
-                { x: 70, y: 120 },
-                { x: 70, y: 800 },
-                { x: 70, y: 1450 }
-            ]
-        };
-    }
-
-    return {
-        photoW: 700,
-        photoH: 525,
-        positions: [
-            { x: 50, y: 80 },
-            { x: 50, y: 825 },
-            { x: 50, y: 1570 }
-        ]
-    };
-}
         function downloadImage() {
             const link = document.createElement('a');
             link.download = `archive_${Date.now()}.jpg`;
@@ -850,39 +712,22 @@ else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/fr
             
             await new Promise(r => {
                 img.onload = () => {
-                    const xPos = cfg.positions[p].x;
-                    const yPos = cfg.positions[p].y;
+                    let xPos, yPos;
                     
-                    // Center Crop Calculations
-                    let sw = img.width;
-                    let sh = img.height;
-                    let sx = 0;
-                    let sy = 0;
-                    const targetRatio = cfg.photoW / cfg.photoH;
-                    const imgRatio = sw / sh;
-
-                    if (imgRatio > targetRatio) {
-                        sw = sh * targetRatio;
-                        sx = (img.width - sw) / 2;
+                    // --- PERBAIKAN DI SINI ---
+                    if (cfg.positions) {
+                        // Kalau layout custom (seperti Layout I), pakai koordinat dari array positions
+                        xPos = cfg.positions[p].x;
+                        yPos = cfg.positions[p].y;
                     } else {
-                        sh = sw / targetRatio;
-                        sy = (img.height - sh) / 2;
+                        // Kalau layout strip biasa, pakai rumus vertikal
+                        xPos = cfg.startX;
+                        yPos = cfg.startY + (p * (cfg.photoH + cfg.gap));
                     }
-
-                    // Circular Clip ONLY for Layout B
-                    if (selectedLayout === 'layoutB') {
-                        tCtx.save();
-                        tCtx.beginPath();
-                        tCtx.arc(xPos + cfg.photoW/2, yPos + cfg.photoH/2, cfg.photoW/2, 0, Math.PI * 2);
-                        tCtx.clip();
-                        tCtx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
-                        tCtx.restore();
-                    } else {
-                        tCtx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
-                    }
+                    
+                    tCtx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
                     r();
                 };
-                img.onerror = () => { r(); };
             });
         }
         
@@ -912,14 +757,10 @@ else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/fr
     });
 }
 
-    window.onload = () => {
-        initCamera();
-        loadSession();
-    };
+        window.onload = initCamera;
     </script>
 </body>
 </html>
-
 
 
 
