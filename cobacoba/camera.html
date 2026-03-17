@@ -6,7 +6,7 @@
     <title>TIMELESS — ARCHIVING SESSION</title>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono&display=swap" rel="stylesheet">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.4.5/gifshot.min.js"></script>
 
     <style>
         /* --- CHRONOS THEME BASE --- */
@@ -239,7 +239,7 @@
 
     <div class="top-info">
         <div style="display: flex; align-items: center; gap: 15px;">
-        <button onclick="window.location.href='index.html'" class="btn-back">
+        <button onclick="goBack()" class="btn-back">
             ← RETAKE_LAYOUT
         </button>
         <div>SYS_SESSION // GEN_01</div>
@@ -455,7 +455,6 @@
         countdownEl.style.display = 'none';
         liveTag.style.display = 'none';
         
-        loading.style.display = 'block';
         const cfg = getLayoutConfig();
         const gifData = await makeGif(currentPoseFrames, cfg.photoW, cfg.photoH); 
         rawFrames.push(currentPoseFrames);
@@ -568,32 +567,48 @@
     
     tempCtx.restore();
 
+    // Fill white background to prevent black bars if anything goes wrong
+    const whiteBgCanvas = document.createElement('canvas');
+    whiteBgCanvas.width = cfg.photoW;
+    whiteBgCanvas.height = cfg.photoH;
+    const wCtx = whiteBgCanvas.getContext('2d');
+    wCtx.fillStyle = '#ffffff';
+    wCtx.fillRect(0, 0, cfg.photoW, cfg.photoH);
+    wCtx.drawImage(tempCanvas, 0, 0);
+
     // Logika tambahan untuk filter khusus (sunset, dither, dll) tetap sama
     if (currentFilter === 'sunset') {
-        tempCtx.globalAlpha = 0.3;
-        tempCtx.globalCompositeOperation = 'multiply';
-        const grad = tempCtx.createLinearGradient(0,0,0,cfg.photoH);
+        wCtx.globalAlpha = 0.3;
+        wCtx.globalCompositeOperation = 'multiply';
+        const grad = wCtx.createLinearGradient(0,0,0,cfg.photoH);
         grad.addColorStop(0, '#ffcc33'); grad.addColorStop(1, '#ff6600');
-        tempCtx.fillStyle = grad;
-        tempCtx.fillRect(0,0,cfg.photoW, cfg.photoH);
+        wCtx.fillStyle = grad;
+        wCtx.fillRect(0,0,cfg.photoW, cfg.photoH);
     }
     
     if (currentFilter === 'dither') {
-        let imgData = tempCtx.getImageData(0, 0, cfg.photoW, cfg.photoH);
+        let imgData = wCtx.getImageData(0, 0, cfg.photoW, cfg.photoH);
         imgData = applyDithering(imgData);
-        tempCtx.putImageData(imgData, 0, 0);
+        wCtx.putImageData(imgData, 0, 0);
     }
     
     if (currentFilter === 'halftone') {
-        applyHalftone(tempCtx, cfg.photoW, cfg.photoH);
+        applyHalftone(wCtx, cfg.photoW, cfg.photoH);
     }
 
-    return tempCanvas.toDataURL('image/jpeg', 0.9); // Kualitas ditingkatkan ke 0.9
+    return whiteBgCanvas.toDataURL('image/jpeg', 0.9);
 }
 
         function makeGif(frames, w, h) {
             return new Promise(resolve => {
-                gifshot.createGIF({ images: frames, gifWidth: w || 400, gifHeight: h || 300, interval: 0.1 }, 
+                gifshot.createGIF({ 
+                    images: frames, 
+                    gifWidth: Math.round(w), 
+                    gifHeight: Math.round(h), 
+                    interval: 0.1,
+                    numWorkers: 4,
+                    sampleInterval: 5
+                }, 
                 function(obj) { if(!obj.error) resolve(obj.image); resolve(frames[0]); });
             });
         }
@@ -653,34 +668,34 @@
 
         function getLayoutConfig() {
             if (selectedLayout === 'layoutB') return { photoW: 710, photoH: 447, startX: 45, startY: 54, gap: 90 };
-            if (['layoutC', 'layoutD', 'layoutE',].includes(selectedLayout)) return { photoW: 710, photoH: 549, startX: 50, startY: 133, gap: 190 };
+            if (['layoutC', 'layoutD', 'layoutE'].includes(selectedLayout)) return { photoW: 710, photoH: 549, startX: 50, startY: 133, gap: 190 };
             if (selectedLayout === 'layoutF') return { photoW: 640, photoH: 788, startX: 80, startY: 290, gap: 193 };
-            if (selectedLayout === 'layoutG') return { photoW: 586, photoH: 798, startX: 343, startY: 372, gap: 0};
+            if (selectedLayout === 'layoutG') return { photoW: 586, photoH: 798, startX: 343, startY: 372, gap: 0 };
+            if (selectedLayout === 'layoutH') return { photoW: 710, photoH: 549, startX: 50, startY: 133, gap: 175 };
             if (selectedLayout === 'layoutI') {
-            return {
-                photoW: 485,  // Berdasarkan screenshot lo
-                photoH: 597,  // Berdasarkan screenshot lo
-                // Karena posisinya custom (tidak cuma vertikal), kita buat array koordinat
-                positions: [
-                    { x: 34,  y: 186 }, // Foto 1 (Kiri Atas)
-                    { x: 564, y: 186 }, // Foto 2 (Kanan Atas)
-                    { x: 29,  y: 905 }, // Foto 3 (Kiri Bawah - Estimasi gap 122)
-                    { x: 564, y: 905 }  // Foto 4 (Kanan Bawah - Estimasi gap 122)
+                return {
+                    photoW: 485,
+                    photoH: 597,
+                    positions: [
+                        { x: 34, y: 186 },
+                        { x: 564, y: 186 },
+                        { x: 29, y: 905 },
+                        { x: 564, y: 905 }
                     ]
                 };
             }
             if (selectedLayout === 'layoutJ') {
-            return {
-                photoW: 700,  // Lebar berdasarkan screenshot Canva kamu
-                photoH: 525,  // Tinggi berdasarkan screenshot Canva kamu
-                // Kita tentukan koordinat X dan Y untuk masing-masing dari 3 foto
-                positions: [
-                    { x: 50,  y: 133 },  // Foto 1 (Kiri Atas)
-                    { x: 50, y: 833 },  // Foto 2 (Kanan Atas)
-                    { x: 50,  y: 1533.5 }   // Foto 3 (Kiri Bawah) -> Angka 905 ini estimasi, silakan cek Y di Canva untuk kotak bawah
+                return {
+                    photoW: 700,
+                    photoH: 525,
+                    positions: [
+                        { x: 50, y: 133 },
+                        { x: 50, y: 833 },
+                        { x: 50, y: 1534 }
                     ]
                 };
             }
+            // Layout A Default
             return { photoW: 710, photoH: 549, startX: 43, startY: 50, gap: 190 };
         }
 
