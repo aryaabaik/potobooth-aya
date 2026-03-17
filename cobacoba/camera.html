@@ -346,23 +346,21 @@
         let maxPoses = 3; 
         const frameImg = new Image();
 
-        // MAPPING: Sync with layout.html
+        // MAPPING: Ensure frame images match what's in layout.html
         if (selectedLayout === 'layoutA') { maxPoses = 3; frameImg.src = 'frames/1.png'; }
         else if (selectedLayout === 'layoutB') { maxPoses = 3; frameImg.src = 'frames/2.png'; } 
         else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/3.png'; } 
         else if (selectedLayout === 'layoutD') { maxPoses = 3; frameImg.src = 'frames/4.png'; } 
         else if (selectedLayout === 'layoutE') { maxPoses = 3; frameImg.src = 'frames/8.png'; } 
         else if (selectedLayout === 'layoutF') { maxPoses = 3; frameImg.src = 'frames/9.png'; } 
-        else if (selectedLayout === 'layoutG') { maxPoses = 1; frameImg.src = 'frames/6.png'; } 
+        else if (selectedLayout === 'layoutG') { maxPoses = 1; frameImg.src = 'frames/6.png'; camBox.style.aspectRatio = "640/788"; } 
         else if (selectedLayout === 'layoutH') { maxPoses = 3; frameImg.src = 'frames/framea1.png'; } 
         else if (selectedLayout === 'layoutI') { maxPoses = 3; frameImg.src = 'frames/9.png'; } 
         else if (selectedLayout === 'layoutJ') { maxPoses = 3; frameImg.src = 'frames/framea.png'; }
         else { maxPoses = 3; frameImg.src = 'frames/1.png'; }
 
-        // Set Aspect Ratio
-        if (selectedLayout === 'layoutG') {
-            camBox.style.aspectRatio = "1080/1920";
-        } else {
+        // Set Aspect Ratio for Strips
+        if (['layoutA','layoutB','layoutC','layoutD','layoutE','layoutF','layoutH','layoutI','layoutJ'].includes(selectedLayout)) {
             camBox.style.aspectRatio = "800/2400";
         }
 
@@ -688,6 +686,7 @@
     await new Promise(resolve => {
         setTimeout(async () => {
             const isLargeLayout = (selectedLayout === 'layoutG');
+            
             canvas.width = isLargeLayout ? 1080 : 800;
             canvas.height = isLargeLayout ? 1920 : 2400;
 
@@ -702,23 +701,9 @@
                 img.src = photos[i]; 
                 await new Promise(r => {
                     img.onload = () => {
-                        const xPos = cfg.positions[i].x;
-                        const yPos = cfg.positions[i].y;
-                        
-                        // PROFESSIONAL CENTER CROP
-                        const imgRatio = img.width / img.height;
-                        const targetRatio = cfg.photoW / cfg.photoH;
-                        let sw, sh, sx, sy;
-
-                        if (imgRatio > targetRatio) {
-                            sh = img.height; sw = img.height * targetRatio;
-                            sx = (img.width - sw) / 2; sy = 0;
-                        } else {
-                            sw = img.width; sh = img.width / targetRatio;
-                            sx = 0; sy = (img.height - sh) / 2;
-                        }
-
-                        ctx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
+                        let xPos = cfg.positions[i].x;
+                        let yPos = cfg.positions[i].y;
+                        ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
                         r();
                     };
                     img.onerror = () => { r(); };
@@ -726,24 +711,26 @@
             }
             ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
             resolve();
-        }, 1200); 
+        }, 1500); // 1.5s is enough
     });
             loading.style.display = 'none';
             document.getElementById('downloadOptions').style.display = 'flex';
         }
 
         function getLayoutConfig() {
-            // Standard 3-photo vertical strip (800x2400)
-            const standardStrip = {
-                photoW: 700,
-                photoH: 525,
-                positions: [
-                    { x: 50, y: 80 },
-                    { x: 50, y: 825 },
-                    { x: 50, y: 1570 }
-                ]
-            };
-
+            // ALL STRIPS (A, B, C, D, E, F, H, I, J) use this 3-photo coordinate system
+            if (['layoutA', 'layoutB', 'layoutC', 'layoutD', 'layoutE', 'layoutF', 'layoutH', 'layoutI', 'layoutJ'].includes(selectedLayout)) {
+                return {
+                    photoW: 710,
+                    photoH: 549,
+                    positions: [
+                        { x: 45, y: 133 },
+                        { x: 45, y: 833 },
+                        { x: 45, y: 1533 }
+                    ]
+                };
+            }
+            
             if (selectedLayout === 'layoutG') {
                 return { 
                     photoW: 586, 
@@ -752,7 +739,16 @@
                 };
             }
             
-            return standardStrip;
+            // Fallback default
+            return {
+                photoW: 710,
+                photoH: 549,
+                positions: [
+                    { x: 45, y: 133 },
+                    { x: 45, y: 833 },
+                    { x: 45, y: 1533 }
+                ]
+            };
         }
 
         function downloadImage() {
