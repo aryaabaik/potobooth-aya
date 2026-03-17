@@ -346,8 +346,8 @@
         let maxPoses = 3; 
         const frameImg = new Image();
 
-        if (selectedLayout === 'layoutB') { maxPoses = 3; frameImg.src = 'frames/2.png'; } 
-        else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/3.png'; } 
+        if (selectedLayout === 'layoutB') { maxPoses = 3; frameImg.src = 'frames/3.png'; } 
+        else if (selectedLayout === 'layoutC') { maxPoses = 3; frameImg.src = 'frames/2.png'; } 
         else if (selectedLayout === 'layoutD') { maxPoses = 3; frameImg.src = 'frames/4.png'; } 
         else if (selectedLayout === 'layoutE') { maxPoses = 3; frameImg.src = 'frames/8.png'; } 
         else if (selectedLayout === 'layoutF') { maxPoses = 3; frameImg.src = 'frames/9.png'; camBox.style.aspectRatio = "800/2400"; } 
@@ -695,12 +695,12 @@
                 await new Promise(r => {
                     img.onload = () => {
                         let xPos, yPos;
-                        if (cfg.positions) {
+                        if (cfg.positions && cfg.positions[i]) {
                             xPos = cfg.positions[i].x;
                             yPos = cfg.positions[i].y;
                         } else {
-                            xPos = cfg.startX;
-                            yPos = cfg.startY + (i * (cfg.photoH + cfg.gap));
+                            xPos = cfg.startX || 45;
+                            yPos = (cfg.startY || 50) + (i * (cfg.photoH + (cfg.gap || 190)));
                         }
                         ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
                         r();
@@ -718,25 +718,22 @@
 
         function getLayoutConfig() {
             // Standard vertical strip coordinate system (3 photos)
+            // Using common positions that work for most frames (y: 50, 789, 1528)
             const standardStrip = {
                 photoW: 710,
                 photoH: 549,
                 positions: [
-                    { x: 45, y: 133 },
-                    { x: 45, y: 833 },
-                    { x: 45, y: 1533 }
+                    { x: 45, y: 50 },
+                    { x: 45, y: 789 },
+                    { x: 45, y: 1528 }
                 ]
             };
 
-            if (selectedLayout === 'layoutB') return standardStrip;
-            if (['layoutC', 'layoutD', 'layoutE'].includes(selectedLayout)) return standardStrip;
-            if (selectedLayout === 'layoutF' || selectedLayout === 'layoutI') return standardStrip;
-            if (selectedLayout === 'layoutH' || selectedLayout === 'layoutJ') return standardStrip;
+            if (['layoutA', 'layoutB', 'layoutC', 'layoutD', 'layoutE', 'layoutF', 'layoutH', 'layoutI', 'layoutJ'].includes(selectedLayout)) return standardStrip;
             
             if (selectedLayout === 'layoutG') return { photoW: 586, photoH: 798, startX: 343, startY: 372, gap: 0 };
             
-            // Layout A Default
-            return { photoW: 710, photoH: 549, startX: 43, startY: 50, gap: 190 };
+            return standardStrip;
         }
 
         function downloadImage() {
