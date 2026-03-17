@@ -612,8 +612,24 @@
     tempCtx.scale(-1, 1);
 
     // DRAW DENGAN 9 PARAMETER UNTUK CROP
-    tempCtx.drawImage(video, sX, sY, sW, sH, 0, 0, cfg.photoW, cfg.photoH);
-    
+if (selectedLayout === 'layoutB') {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(
+        xPos + cfg.photoW/2,
+        yPos + cfg.photoH/2,
+        cfg.photoW/2,
+        0,
+        Math.PI * 2
+    );
+    ctx.clip();
+}
+
+ctx.drawImage(img, sx, sy, sw, sh, xPos, yPos, cfg.photoW, cfg.photoH);
+
+if (selectedLayout === 'layoutB') {
+    ctx.restore();
+}    
     tempCtx.restore();
 
     // Fill white background to prevent black bars if anything goes wrong
@@ -717,39 +733,96 @@
             document.getElementById('downloadOptions').style.display = 'flex';
         }
 
-        function getLayoutConfig() {
-            // ALL STRIPS (A, B, C, D, E, F, H, I, J) use this 3-photo coordinate system
-            if (['layoutA', 'layoutB', 'layoutC', 'layoutD', 'layoutE', 'layoutF', 'layoutH', 'layoutI', 'layoutJ'].includes(selectedLayout)) {
-                return {
-                    photoW: 710,
-                    photoH: 549,
-                    positions: [
-                        { x: 45, y: 133 },
-                        { x: 45, y: 833 },
-                        { x: 45, y: 1533 }
-                    ]
-                };
-            }
-            
-            if (selectedLayout === 'layoutG') {
-                return { 
-                    photoW: 586, 
-                    photoH: 798, 
-                    positions: [ { x: 343, y: 372 } ] 
-                };
-            }
-            
-            // Fallback default
-            return {
-                photoW: 710,
-                photoH: 549,
-                positions: [
-                    { x: 45, y: 133 },
-                    { x: 45, y: 833 },
-                    { x: 45, y: 1533 }
-                ]
-            };
-        }
+       function getLayoutConfig() {
+
+    // 🩷 Pink (4 foto)
+    if (selectedLayout === 'layoutA') {
+        return {
+            photoW: 380,
+            photoH: 500,
+            positions: [
+                { x: 60, y: 200 },
+                { x: 430, y: 200 },
+                { x: 60, y: 800 },
+                { x: 430, y: 800 }
+            ]
+        };
+    }
+
+    // 🧸 Teddy (bulat)
+    if (selectedLayout === 'layoutB') {
+        return {
+            photoW: 500,
+            photoH: 500,
+            positions: [
+                { x: 140, y: 150 },
+                { x: 140, y: 800 },
+                { x: 140, y: 1450 }
+            ]
+        };
+    }
+
+    // 🌫️ Abu
+    if (selectedLayout === 'layoutC') {
+        return {
+            photoW: 650,
+            photoH: 480,
+            positions: [
+                { x: 75, y: 130 },
+                { x: 75, y: 800 },
+                { x: 75, y: 1470 }
+            ]
+        };
+    }
+
+    // 🌼 Vintage
+    if (selectedLayout === 'layoutD') {
+        return {
+            photoW: 650,
+            photoH: 600,
+            positions: [
+                { x: 75, y: 100 },
+                { x: 75, y: 850 },
+                { x: 75, y: 1600 }
+            ]
+        };
+    }
+
+    // 🖥️ Windows XP (1 foto)
+    if (selectedLayout === 'layoutG') {
+        return {
+            photoW: 600,
+            photoH: 600,
+            positions: [
+                { x: 140, y: 250 }
+            ]
+        };
+    }
+
+    // 🌊 Laut
+    if (selectedLayout === 'layoutH') {
+        return {
+            photoW: 650,
+            photoH: 500,
+            positions: [
+                { x: 75, y: 120 },
+                { x: 75, y: 800 },
+                { x: 75, y: 1450 }
+            ]
+        };
+    }
+
+    // default fallback
+    return {
+        photoW: 700,
+        photoH: 525,
+        positions: [
+            { x: 50, y: 80 },
+            { x: 50, y: 825 },
+            { x: 50, y: 1570 }
+        ]
+    };
+}
 
         function downloadImage() {
             const link = document.createElement('a');
