@@ -366,8 +366,8 @@
             try {
                 const constraints = { 
                     video: { 
-                        width: { ideal: 1280 }, 
-                        height: { ideal: 960 },
+                        width: { ideal: 640 }, 
+                        height: { ideal: 480 },
                         facingMode: "user"
                     }, 
                     audio: false 
@@ -426,13 +426,15 @@
         }
 
         function saveSession() {
-            sessionStorage.setItem('temp_photos', JSON.stringify(photos));
-            sessionStorage.setItem('temp_raw', JSON.stringify(rawFrames));
+            try {
+                localStorage.setItem('p_photos', JSON.stringify(photos));
+                localStorage.setItem('p_raw', JSON.stringify(rawFrames));
+            } catch(e) { console.warn("Local storage full", e); }
         }
 
         function loadSession() {
-            const savedPhotos = sessionStorage.getItem('temp_photos');
-            const savedRaw = sessionStorage.getItem('temp_raw');
+            const savedPhotos = localStorage.getItem('p_photos');
+            const savedRaw = localStorage.getItem('p_raw');
             if (savedPhotos && savedRaw) {
                 photos = JSON.parse(savedPhotos);
                 rawFrames = JSON.parse(savedRaw);
@@ -455,8 +457,7 @@
         try {
             startBtn.disabled = true;
             document.getElementById('filterContainer').style.display = 'none';
-            const camBox = document.getElementById('camBox');
-
+            
             // COUNTDOWN
             countdownEl.style.display = 'block';
             for (let i = 3; i >= 1; i--) {
@@ -464,45 +465,33 @@
                 try { sfx.beep.play(); } catch(e) {}
                 await new Promise(r => setTimeout(r, 1000));
             }
-            
-            countdownEl.innerText = "";
-            liveTag.style.display = 'block';
-            
-            const currentPoseFrames = [];
-            for(let i=0; i<4; i++) {
-                const frame = captureFrameManual();
-                if (frame) currentPoseFrames.push(frame);
-                await new Promise(r => setTimeout(r, 200));
-            }
-
-            // FLASH + SHUTTER
-            const flash = document.getElementById('flash');
-            flash.style.display = 'block';
-            camBox.classList.add('glitch-active');
-            try { sfx.shutter.play(); } catch(e) {}
-            
-            setTimeout(() => {
-                flash.style.display = 'none';
-                camBox.classList.remove('glitch-active');
-            }, 400);
-
             countdownEl.style.display = 'none';
-            liveTag.style.display = 'none';
             
             loading.style.display = 'block';
-            loading.innerText = "SAVING_POSE...";
+            loading.innerText = "CAPTURING...";
 
-            // MOBILE PROTECTION: Don't make GIF now. Just use the first frame for the inventory.
-            // This prevents the browser from crashing due to memory usage.
-            const staticPreview = currentPoseFrames[0];
-            
+            // CAPTURE ONLY 2 FRAMES FOR MOBILE (to save RAM)
+            const currentPoseFrames = [];
+            for(let i=0; i<2; i++) {
+                const frame = captureFrameManual();
+                if (frame) currentPoseFrames.push(frame);
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            // FLASH
+            const flash = document.getElementById('flash');
+            flash.style.display = 'block';
+            try { sfx.shutter.play(); } catch(e) {}
+            setTimeout(() => { flash.style.display = 'none'; }, 200);
+
+            // STORE DATA
+            photos.push(currentPoseFrames[0]); // Preview is first frame
             rawFrames.push(currentPoseFrames);
-            photos.push(staticPreview);
             
             saveSession();
             updateInventory();
         } catch (err) {
-            console.error("Capture Fail:", err);
+            console.error("Critical Capture Error", err);
         } finally {
             loading.style.display = 'none';
             startBtn.disabled = false;
@@ -641,7 +630,7 @@
         applyHalftone(wCtx, cfg.photoW, cfg.photoH);
     }
 
-    return whiteBgCanvas.toDataURL('image/jpeg', 0.9);
+    return whiteBgCanvas.toDataURL('image/jpeg', 0.6); // LOWER QUALITY FOR MOBILE
 }
 
         function makeGif(frames, w, h) {
