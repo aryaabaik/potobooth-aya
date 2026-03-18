@@ -662,13 +662,15 @@ await new Promise(resolve => {
                 };
             }
             if (selectedLayout === 'layoutD') {
-                    return {
-                        photoW: 660,
-                        photoH: 500,
-                        startX: 70,
-                        startY: 180,
-                        gap: 80
-                    };
+                return {
+                    photoW: 700,
+                    photoH: 525,
+                    positions: [
+                        { x: 50, y: 133 },
+                        { x: 50, y: 792 },
+                        { x: 50, y: 1534 }
+                    ]
+                };
             }
             if (selectedLayout === 'layoutE') {
                 return {
