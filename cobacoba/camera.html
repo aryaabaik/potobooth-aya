@@ -610,40 +610,43 @@
 
     await frameImg.decode();
 
-    await new Promise(resolve => {
-        setTimeout(async () => {
-            const isLargeLayout = (selectedLayout === 'layoutG' || selectedLayout === 'layoutI');
-            
-            canvas.width = isLargeLayout ? 1080 : 800;
-            canvas.height = isLargeLayout ? 1920 : 2400;
+await new Promise(resolve => {
+    setTimeout(async () => {
 
-            let cfg = getLayoutConfig();
-            
-            for (let i = 0; i < photos.length; i++) {
-                const img = new Image();
-                img.src = photos[i]; 
-                await new Promise(r => {
-                    img.onload = () => {
-    let xPos, yPos;
-    if (cfg.positions) {
-        xPos = cfg.positions[i].x;
-        yPos = cfg.positions[i].y;
-    } else {
-        xPos = cfg.startX;
-        yPos = cfg.startY + (i * (cfg.photoH + cfg.gap));
-    }
+        await frameImg.decode();
 
-    // Karena foto sudah di-crop di captureFrameManual, tinggal tempel:
-    ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
-    r();
-}
-                });
-            }
-            ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
-            resolve();
-        }, 3000); 
-    });
-            loading.style.display = 'none';
+        // ✅ FIX DI SINI
+        canvas.width = frameImg.width;
+        canvas.height = frameImg.height;
+
+        let cfg = getLayoutConfig();
+        
+        for (let i = 0; i < photos.length; i++) {
+            const img = new Image();
+            img.src = photos[i]; 
+            await new Promise(r => {
+                img.onload = () => {
+                    let xPos, yPos;
+
+                    if (cfg.positions) {
+                        xPos = cfg.positions[i].x;
+                        yPos = cfg.positions[i].y;
+                    } else {
+                        xPos = cfg.startX;
+                        yPos = cfg.startY + (i * (cfg.photoH + cfg.gap));
+                    }
+
+                    ctx.drawImage(img, xPos, yPos, cfg.photoW, cfg.photoH);
+                    r();
+                }
+            });
+        }
+
+        ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+        resolve();
+
+    }, 3000); 
+});            loading.style.display = 'none';
             document.getElementById('downloadOptions').style.display = 'flex';
         }
 
