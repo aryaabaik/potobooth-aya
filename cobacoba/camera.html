@@ -649,8 +649,34 @@
 
         function getLayoutConfig() {
             if (selectedLayout === 'layoutB') return { photoW: 710, photoH: 447, startX: 45, startY: 54, gap: 90 };
-            if (['layoutC', 'layoutD', 'layoutE',].includes(selectedLayout)) return { photoW: 710, photoH: 549, startX: 50, startY: 133, gap: 190 };
-            if (selectedLayout === 'layoutF') return { photoW: 640, photoH: 788, startX: 80, startY: 290, gap: 193 };
+            if (selectedLayout === 'layoutC') {
+                return {
+                    photoW: 690,
+                    photoH: 520,
+                    startX: 55,
+                    startY: 120,
+                    gap: 170
+                };
+            }            
+            if (selectedLayout === 'layoutD') {
+                return {
+                    photoW: 700,
+                    photoH: 540,
+                    startX: 50,
+                    startY: 140,
+                    gap: 200
+                };
+            }
+            if (selectedLayout === 'layoutE') {
+                return {
+                    photoW: 710,
+                    photoH: 549,
+                    startX: 50,
+                    startY: 133,
+                    gap: 190
+                };
+            }
+            // if (selectedLayout === 'layoutF') return { photoW: 640, photoH: 788, startX: 80, startY: 290, gap: 193 };
             if (selectedLayout === 'layoutG') return { photoW: 586, photoH: 798, startX: 343, startY: 372, gap: 0};
             if (selectedLayout === 'layoutI') {
             return {
@@ -665,18 +691,18 @@
                     ]
                 };
             }
-            if (selectedLayout === 'layoutJ') {
-            return {
-                photoW: 700,  // Lebar berdasarkan screenshot Canva kamu
-                photoH: 525,  // Tinggi berdasarkan screenshot Canva kamu
-                // Kita tentukan koordinat X dan Y untuk masing-masing dari 3 foto
-                positions: [
-                    { x: 50,  y: 133 },  // Foto 1 (Kiri Atas)
-                    { x: 50, y: 833 },  // Foto 2 (Kanan Atas)
-                    { x: 50,  y: 1533.5 }   // Foto 3 (Kiri Bawah) -> Angka 905 ini estimasi, silakan cek Y di Canva untuk kotak bawah
-                    ]
-                };
-            }
+            // if (selectedLayout === 'layoutJ') {
+            // return {
+            //     photoW: 700,  // Lebar berdasarkan screenshot Canva kamu
+            //     photoH: 525,  // Tinggi berdasarkan screenshot Canva kamu
+            //     // Kita tentukan koordinat X dan Y untuk masing-masing dari 3 foto
+            //     positions: [
+            //         { x: 50,  y: 133 },  // Foto 1 (Kiri Atas)
+            //         { x: 50, y: 833 },  // Foto 2 (Kanan Atas)
+            //         { x: 50,  y: 1533.5 }   // Foto 3 (Kiri Bawah) -> Angka 905 ini estimasi, silakan cek Y di Canva untuk kotak bawah
+            //         ]
+            //     };
+            // }
             return { photoW: 710, photoH: 549, startX: 43, startY: 50, gap: 190 };
         }
 
