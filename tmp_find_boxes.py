@@ -2,7 +2,7 @@ from PIL import Image
 import sys
 
 def main():
-    img = Image.open('c:/Users/DESKTOP/OneDrive/Documents/yayarya/cobacoba/frames/2.png').convert('RGBA')
+    img = Image.open('c:/Users/DESKTOP/OneDrive/Documents/yayarya/cobacoba/frames/8.png').convert('RGBA')
     w, h = img.size
     pixels = img.load()
     
